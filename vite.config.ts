@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
 import pkg from './package.json'
+import svgr from 'vite-plugin-svgr'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
@@ -17,10 +18,21 @@ export default defineConfig(({ command }) => {
   return {
     resolve: {
       alias: {
-        '@': path.join(__dirname, 'src')
+        '@': path.join(__dirname, 'src'),
+        'react-svg-loader': require.resolve('react-svg-loader'),
       },
     },
     plugins: [
+      svgr(),
+      {
+        name: 'svg-loader',
+        enforce: 'pre',
+        transform: (src, id) => {
+          if (id.endsWith('.svg')) {
+            return `export default ${JSON.stringify(src)}`;
+          }
+        },
+      },
       react(),
       electron([
         {
