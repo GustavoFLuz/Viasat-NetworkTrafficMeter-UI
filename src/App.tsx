@@ -1,7 +1,7 @@
 import { RouterProvider } from 'react-router-dom';
-import { router } from './router';
+import { router } from '@/router';
 import { ThemeProvider } from '@mui/material';
-import { LightTheme } from './shared/themes';
+import { LightTheme } from '@/assets/themes';
 
 const App = () => {
   return (

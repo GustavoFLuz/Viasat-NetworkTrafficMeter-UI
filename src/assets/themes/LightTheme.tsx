@@ -32,7 +32,7 @@ export const LightTheme = createTheme({
     },
     background: {
       default: '#F5F6FA',
-      paper: '#202E39',
+      paper: '#EAEAEA',
     },
     error: {
       main: '#ff4747',
@@ -47,5 +47,9 @@ export const LightTheme = createTheme({
   },
   typography: {
     fontFamily: 'Poppins',
+    h6: {
+      fontSize: '1.25rem',
+      lineHeight: '1.75rem',
+    }
   },
 });

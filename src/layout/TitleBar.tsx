@@ -1,14 +1,11 @@
-import { Box, Button, IconButton, Toolbar } from '@mui/material'
-import MinimizeIcon from '@mui/icons-material/Minimize';
-import CropSquareIcon from '@mui/icons-material/CropSquare';
-import CloseIcon from '@mui/icons-material/Close';
-import SettingsIcon from '@mui/icons-material/Settings';
-import ReorderIcon from '@mui/icons-material/Reorder';
-import MenuIcon from '@mui/icons-material/Menu';
-import { useContext } from 'react';
-import { Counter } from '.';
 import { LogoGreen } from '@/assets/logo';
+import { Counter } from '@/shared/components';
+import CloseIcon from '@mui/icons-material/Close';
+import CropSquareIcon from '@mui/icons-material/CropSquare';
+import MinimizeIcon from '@mui/icons-material/Minimize';
+import { Box, Button } from '@mui/material';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { ipcRenderer } = require('electron')
 
 const buttonStyles = {

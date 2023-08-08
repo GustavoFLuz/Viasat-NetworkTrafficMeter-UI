@@ -1,7 +1,6 @@
 import { Box } from '@mui/material'
-import React from 'react'
 import { Outlet } from 'react-router-dom'
-import { TitleBar } from '.'
+import { TitleBar } from './'
 
 
 export const Container = () => {
