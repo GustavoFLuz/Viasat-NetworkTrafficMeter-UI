@@ -4,6 +4,7 @@ import { Box, Paper, Typography } from '@mui/material'
 import { NetworkUsageContext } from '@/shared/contexts';
 import { useTheme } from '@mui/material/styles';
 import { GroupedTotalData as GroupedDataType } from '@/shared/types/NetworkUsage';
+import { TitleBarHeight } from '@/layout';
 const { ipcRenderer } = window.require("electron");
 
 export const Dashboard = () => {
@@ -27,7 +28,7 @@ export const Dashboard = () => {
                 <Box
                     sx={{
                         boxSizing: "border-box", display: "flex", gap: 2,
-                        height: '90vh', maxHeight: "calc(100vh - 6em)",
+                        height: '100%', maxHeight: `calc(100vh - 3.6rem - ${TitleBarHeight})`,
                         width: "100%", flexGrow: 1, py: 2, px: 3
                     }}>
                     <Box sx={{ width: "30%" }}>

@@ -71,9 +71,9 @@ export const AppList: React.FC<AppListProps> = ({ children, drawerOpen, data }) 
                         <TableHead sx={{ height: '2em' }}>
                             <TableRow>
                                 <TableCell onClick={() => changeSorting('name')}
-                                    align="right" sx={{ minWidth: "100px", cursor: "pointer", whiteSpace: "nowrap", verticalAlign: "middle" }}>
-                                    {getSortingIcon('name')}
+                                    align="left" sx={{ minWidth: "100px", cursor: "pointer", whiteSpace: "nowrap", verticalAlign: "middle" }}>
                                     <span>Name</span>
+                                    {getSortingIcon('name')}
                                 </TableCell>
                                 <Tooltip title="Download">
                                     <TableCell onClick={() => changeSorting('download_value')}
