@@ -1,16 +1,20 @@
 import { RouterProvider } from 'react-router-dom';
 import { router } from '@/router';
-import { ThemeProvider } from '@mui/material';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 import { LightTheme } from '@/assets/themes';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { SettingsProvider } from './shared/contexts/Settings';
 
 const App = () => {
   return (
     <LocalizationProvider dateAdapter={AdapterMoment}>
-      <ThemeProvider theme={LightTheme}>
-        <RouterProvider router={router} />
-      </ThemeProvider>
+      <SettingsProvider>
+        <ThemeProvider theme={LightTheme}>
+          <CssBaseline />
+          <RouterProvider router={router} />
+        </ThemeProvider>
+      </SettingsProvider>
     </LocalizationProvider>
   )
 }

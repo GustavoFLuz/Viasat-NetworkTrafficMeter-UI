@@ -14,6 +14,10 @@ export const router = createBrowserRouter([
                         <pages.Dashboard />
                     </NetworkUsageProvider>
                 ),
+            },
+            {
+                path: "/settings",
+                element: <pages.Settings />,
             }
         ],
     },
