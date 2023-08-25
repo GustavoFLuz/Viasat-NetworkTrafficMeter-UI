@@ -3,7 +3,7 @@ export type NetworkUsageContext = {
         current: NetworkUsageData[],
         totalHistory: GroupedTotalData[],
         processesHistory: (GroupedTotalData & { pid: string })[][],
-        add: (rawData: string) => NetworkUsageData[],
+        add: (rawData: string) => void,
         selected: GroupedTotalData[]
     },
     selection: {
@@ -21,6 +21,7 @@ export interface NetworkUsageData {
     download_value: number,
     upload_value: number,
     total_value: number,
+    notified: boolean,    
 
     download_speed: string,
     upload_speed: string,

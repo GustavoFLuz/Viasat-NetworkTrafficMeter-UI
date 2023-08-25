@@ -37,14 +37,14 @@ export const Notifications: React.FC<NotificationsProps> = ({ settings, handleCh
                     <FormControlLabel
                         control={
                             <Switch
-                                value={settings.enabled}
+                                checked={settings.enabled}
                                 onChange={(e) =>
                                     handleChange({
                                         notifications: {
                                             enabled: e.target.checked,
                                             desktopNotifications: false,
-                                            totalUsage: 0,
-                                            processUsage: 0,
+                                            totalUsage: marks[Number(e.target.checked)],
+                                            processUsage: marks[Number(e.target.checked)],
                                         }
                                     })
                                 }
@@ -58,7 +58,7 @@ export const Notifications: React.FC<NotificationsProps> = ({ settings, handleCh
                     <FormControlLabel
                         control={
                             <Switch
-                                value={settings.desktopNotifications}
+                                checked={settings.desktopNotifications}
                                 onChange={(e) =>
                                     handleChange({
                                         notifications: {

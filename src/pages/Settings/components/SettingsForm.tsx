@@ -1,11 +1,10 @@
 import { SettingsContext } from '@/shared/contexts/Settings';
 import { SettingsType } from "@/shared/types/Settings";
-import { Divider, useTheme } from '@mui/material';
+import { Box, Button, Divider, useTheme } from '@mui/material';
 import React, { useContext, useEffect, useState } from 'react';
 import { Notifications } from './Notifications';
 import { Plan } from './Plan';
 import { Preferences } from './Preferences';
-
 
 export const SettingsForm = () => {
     const theme = useTheme();
@@ -28,6 +27,7 @@ export const SettingsForm = () => {
         event.preventDefault();
         console.log('Form data submitted:', formData);
         updateSettings(formData);
+        window.history.back()
     };
 
     return (
@@ -37,7 +37,15 @@ export const SettingsForm = () => {
             <Divider />
             <Notifications settings={formData.notifications} handleChange={handleChange} /> {/* NOT IMPLEMENTED */}
             <Divider />
-            <Preferences settings={formData.preferences} handleChange={handleChange}/> {/* NOT IMPLEMENTED */}
+            <Preferences settings={formData.preferences} handleChange={handleChange} /> {/* NOT IMPLEMENTED */}
+            <Box sx={{ position: "absolute", bottom: "24px", right: "24px" }}>
+                <Button variant="contained" sx={{ px: 4, mx: 2 }} onClick={() => window.history.back()}>
+                    Cancel
+                </Button>
+                <Button variant="contained" sx={{ px: 4, mx: 2 }} type="submit">
+                    Apply
+                </Button>
+            </Box>
         </form >
     );
 }

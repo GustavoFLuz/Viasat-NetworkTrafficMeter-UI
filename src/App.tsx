@@ -5,14 +5,17 @@ import { LightTheme } from '@/assets/themes';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { SettingsProvider } from './shared/contexts/Settings';
+import { NotificationProvider } from './shared/contexts';
 
 const App = () => {
   return (
     <LocalizationProvider dateAdapter={AdapterMoment}>
       <SettingsProvider>
         <ThemeProvider theme={LightTheme}>
-          <CssBaseline />
-          <RouterProvider router={router} />
+          <NotificationProvider>
+            <CssBaseline />
+            <RouterProvider router={router} />
+          </NotificationProvider>
         </ThemeProvider>
       </SettingsProvider>
     </LocalizationProvider>
