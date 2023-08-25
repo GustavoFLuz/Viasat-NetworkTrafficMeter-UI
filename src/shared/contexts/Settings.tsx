@@ -1,5 +1,7 @@
-import { createContext, useState } from "react"
+import { createContext, useEffect, useState } from "react"
 import { SettingsTypes as Types } from "@/shared/types"
+
+const { ipcRenderer } = require('electron')
 
 export const SettingsContext = createContext<Types.SettingsContext | null>(null)
 
@@ -22,6 +24,21 @@ export const SettingsProvider: React.FC<SettingsProps> = ({ children }) => {
         }
     })
     
+    useEffect(() => {
+        ipcRenderer.send("get-settings")
+        ipcRenderer.once("get-settings-response", (_event: any, savedSettings: any) => {
+            if(!savedSettings) return ipcRenderer.send("update-settings", settings)
+            setSettings(savedSettings)
+        })
+        return () => {
+            ipcRenderer.removeAllListeners('settings-response');
+          };
+    }, [])
+
+    useEffect(() => {
+        ipcRenderer.send("update-settings", settings)
+    }, [settings])
+
     const updateSettings = (newSettings: Types.SettingsType) => {
         setSettings(newSettings)
     }

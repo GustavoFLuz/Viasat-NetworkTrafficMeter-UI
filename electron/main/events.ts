@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron';
 import net from 'net';
+import { read_settings, write_settings } from './file';
 
 export function addEvents(window: Electron.CrossProcessExports.BrowserWindow) {
     ipcMain.on('close-window', (event) => {
@@ -40,4 +41,13 @@ export function addEvents(window: Electron.CrossProcessExports.BrowserWindow) {
             console.log('Client: Error connecting to data streaming\n')
             console.log(err);
         });
+
+    ipcMain.once('get-settings', (event) => {
+        const settings = read_settings();
+        event.reply('get-settings-response', settings)
+    });
+
+    ipcMain.on('update-settings', (_event: any, data: any) => {
+        write_settings(data);
+    });
 }
