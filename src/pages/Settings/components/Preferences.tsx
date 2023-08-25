@@ -47,7 +47,7 @@ export const Preferences: React.FC<PreferencesProps> = ({ settings, handleChange
                             displayEmpty
                         >
                             <MenuItem value="" disabled>
-                                Select a language
+                                Select a theme
                             </MenuItem>
                             {themes.map(theme => (
                                 <MenuItem key={"theme_item_" + theme} value={theme}>{theme}</MenuItem>
