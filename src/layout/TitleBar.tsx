@@ -1,10 +1,12 @@
 import { LogoGreen } from '@/assets/logo';
-import { Counter } from '@/shared/components';
+import { CustomDrawer } from '@/shared/components/CustomDrawer';
 import CloseIcon from '@mui/icons-material/Close';
 import CropSquareIcon from '@mui/icons-material/CropSquare';
+import MenuIcon from '@mui/icons-material/Menu';
 import MinimizeIcon from '@mui/icons-material/Minimize';
-import { Box, Button, Tooltip } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { Box, Button, IconButton, Tooltip } from '@mui/material';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { ipcRenderer } = require('electron')
@@ -28,6 +30,7 @@ const buttonStyles = {
 
 export const TitleBar = () => {
     const navigate = useNavigate()
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
     const closeWindow = () => {
         ipcRenderer.send('close-window')
@@ -51,15 +54,18 @@ export const TitleBar = () => {
             width: "100%",
             height: TitleBarHeight,
             display: "flex",
-            alignItems: "center",
+            alignItems: "center",/*  */
             justifyContent: "space-between",
             backgroundColor: "secondary.contrastText",
             position: "relative"
         }}>
-            <Box sx={{ width: "70px", mx: 3, appRegion: "no-drag" }}>
+            <IconButton sx={{ color: "secondary.light", mx: 2, appRegion: 'no-drag' }} onClick={()=>setDrawerOpen(!drawerOpen)}>
+                <MenuIcon />
+            </IconButton>
+            <Box sx={{ width: "70px", appRegion: "no-drag", display: "flex", position: "absolute", left: "50%", top: "50%", translate: "-50% -50%" }}>
                 <LogoGreen />
             </Box>
-            <Box sx={{ px: 2, appRegion: 'no-drag', alignSelf: "flex-end", cursor: "default", color: "secondary.light", position: "absolute", left: "50%", top: "50%", translate: "-50% -50%" }}><Counter /></Box>
+            {/* <Box sx={{ px: 2, appRegion: 'no-drag', alignSelf: "flex-end", cursor: "default", color: "secondary.light", position: "absolute", left: "50%", top: "50%", translate: "-50% -50%" }}><Counter /></Box> */}
             <Box>
                 <Tooltip title="Settings">
                     <Button variant="text" sx={{ ...buttonStyles, mx: 2, "&:hover>svg": { transform: "rotate(180deg)" } }} onClick={openSettings} >
@@ -70,6 +76,7 @@ export const TitleBar = () => {
                 <Button variant="text" sx={buttonStyles} onClick={expandWindow}><CropSquareIcon sx={{ fontSize: 16 }} /></Button>
                 <Button variant="text" sx={buttonStyles} onClick={closeWindow}><CloseIcon sx={{ fontSize: 16 }} /></Button>
             </Box>
+            <CustomDrawer open={drawerOpen} onClose={()=>setDrawerOpen(false)} />
         </Box>
     )
 }
