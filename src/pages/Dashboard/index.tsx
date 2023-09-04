@@ -5,6 +5,7 @@ import { NetworkUsageContext } from '@/shared/contexts';
 import { useTheme } from '@mui/material/styles';
 import { GroupedTotalData as GroupedDataType } from '@/shared/types/NetworkUsage';
 import { TitleBarHeight } from '@/layout';
+import channels from "@/../electron/channels"
 const { ipcRenderer } = window.require("electron");
 
 export const Dashboard = () => {
@@ -14,11 +15,11 @@ export const Dashboard = () => {
     const theme = useTheme();
 
     useEffect(() => {
-        ipcRenderer.on('process', (_event: any, rawData: any) => {
+        ipcRenderer.on(channels.data.process, (_event: any, rawData: any) => {
             //console.log(rawData.length)
             add(rawData)
         });
-        return () => { ipcRenderer.removeAllListeners('process') };
+        return () => { ipcRenderer.removeAllListeners(channels.data.process) };
     }, [])
 
     return (

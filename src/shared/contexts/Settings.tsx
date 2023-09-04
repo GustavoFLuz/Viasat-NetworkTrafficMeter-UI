@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from "react"
 import { SettingsTypes as Types } from "@/shared/types"
-
+import channels from "@/../electron/channels"
 const { ipcRenderer } = require('electron')
 
 export const SettingsContext = createContext<Types.SettingsContext | null>(null)
@@ -23,20 +23,20 @@ export const SettingsProvider: React.FC<SettingsProps> = ({ children }) => {
             theme: "Light"
         }
     })
-    
+
     useEffect(() => {
-        ipcRenderer.send("get-settings")
-        ipcRenderer.once("get-settings-response", (_event: any, savedSettings: any) => {
-            if(!savedSettings) return ipcRenderer.send("update-settings", settings)
+        ipcRenderer.send(channels.settings.get)
+        ipcRenderer.once(channels.settings.get_response, (_event: any, savedSettings: any) => {
+            if (!savedSettings) return ipcRenderer.send(channels.settings.update, settings)
             setSettings(savedSettings)
         })
         return () => {
-            ipcRenderer.removeAllListeners('settings-response');
-          };
+            ipcRenderer.removeAllListeners(channels.settings.get_response);
+        };
     }, [])
 
     useEffect(() => {
-        ipcRenderer.send("update-settings", settings)
+        ipcRenderer.send(channels.settings.update, settings)
     }, [settings])
 
     const updateSettings = (newSettings: Types.SettingsType) => {

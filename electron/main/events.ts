@@ -1,15 +1,16 @@
+import channels from '../channels';
 import { ipcMain } from 'electron';
 import net from 'net';
 import { read_settings, write_settings } from './file';
 
 export function addEvents(window: Electron.CrossProcessExports.BrowserWindow) {
-    ipcMain.on('close-window', (event) => {
+    ipcMain.on(channels.window.close, (event) => {
         window.close();
     });
-    ipcMain.on('maximize-window', (event) => {
+    ipcMain.on(channels.window.maximize, (event) => {
         window.isMaximized() ? window.unmaximize() : window.maximize();
     });
-    ipcMain.on('minimize-window', (event) => {
+    ipcMain.on(channels.window.minimize, (event) => {
         window.minimize();
     });
 
@@ -32,7 +33,7 @@ export function addEvents(window: Electron.CrossProcessExports.BrowserWindow) {
                 if (stringData.length === 65536)
                     auxiliaryString += stringData;
                 else {
-                    window.webContents.send('process', auxiliaryString + stringData);
+                    window.webContents.send(channels.data.process, auxiliaryString + stringData);
                     auxiliaryString = '';
                 }
             })
@@ -42,12 +43,12 @@ export function addEvents(window: Electron.CrossProcessExports.BrowserWindow) {
             console.log(err);
         });
 
-    ipcMain.once('get-settings', (event) => {
+    ipcMain.once(channels.settings.get, (event) => {
         const settings = read_settings();
-        event.reply('get-settings-response', settings)
+        event.reply(channels.settings.get_response, settings)
     });
 
-    ipcMain.on('update-settings', (_event: any, data: any) => {
+    ipcMain.on(channels.settings.update, (_event: any, data: any) => {
         write_settings(data);
     });
 }

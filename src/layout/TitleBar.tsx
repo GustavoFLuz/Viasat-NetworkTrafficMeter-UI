@@ -8,6 +8,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { Box, Button, IconButton, Tooltip } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import channels from "@/../electron/channels"
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { ipcRenderer } = require('electron')
 
@@ -31,17 +32,16 @@ const buttonStyles = {
 export const TitleBar = () => {
     const navigate = useNavigate()
     const [drawerOpen, setDrawerOpen] = useState(false);
-
     const closeWindow = () => {
-        ipcRenderer.send('close-window')
+        ipcRenderer.send(channels.window.close)
     }
 
     const expandWindow = () => {
-        ipcRenderer.send('maximize-window')
+        ipcRenderer.send(channels.window.maximize)
     }
 
     const minimizeWindow = () => {
-        ipcRenderer.send('minimize-window')
+        ipcRenderer.send(channels.window.minimize)
     }
 
     const openSettings = () => {
