@@ -1,8 +1,7 @@
 import { TitleBarHeight } from '@/layout'
-import { Box, Divider, IconButton, Typography } from '@mui/material'
+import { Box, IconButton, Typography } from '@mui/material'
 import { SettingsForm } from './components'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import React from 'react'
 
 export const Settings = () => {
   return (<Box sx={{width:"100%", height:"100%"}}>

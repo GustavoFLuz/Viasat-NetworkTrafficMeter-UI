@@ -1,6 +1,6 @@
 import { NumberToByte } from '@/utils/ByteUtils';
 import { useTheme } from '@mui/material';
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AreaChart as AreaChartRecharts, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 
@@ -19,7 +19,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({ data }) => {
   const [formatedData, setFormatedData] = useState<any>([])
 
   useEffect(() => {
-    setFormatedData(data)
+    setFormatedData(data.Records)
   }, [data])
 
   return (
@@ -39,7 +39,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({ data }) => {
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
-          dataKey="time"
+          dataKey="Time"
           type="number"
           tickFormatter={(value: number) => new Date(value).toLocaleTimeString()}
           interval="preserveStartEnd"
@@ -49,14 +49,13 @@ export const AreaChart: React.FC<AreaChartProps> = ({ data }) => {
           tickFormatter={(value: number) => NumberToByte(value).replace(".00", "")}
         />
         <Tooltip
-          formatter={(value: number, name: string, props) =>
-            [NumberToByte(value), name[0].toUpperCase() + name.slice(1).replace("_value", "")]}
-          labelFormatter={(value: number) => `${data[0].name} at: ${new Date(value).toLocaleTimeString()}`}
+          formatter={(value: number, name: string, props) => [NumberToByte(value), name[0].toUpperCase() + name.slice(1)]}
+          labelFormatter={(value: number) => `${data.Name} at: ${new Date(value).toLocaleTimeString()}`}
         />
         <Area
           key={`area_chart_download`}
           type="monotone"
-          dataKey="download_value"
+          dataKey="Download"
           stroke={theme.palette.primary.dark}
           fill={theme.palette.primary.light}
           isAnimationActive={false}
@@ -64,7 +63,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({ data }) => {
         <Area
           key={`area_chart_upload`}
           type="monotone"
-          dataKey="upload_value"
+          dataKey="Upload"
           stroke={theme.palette.secondary.dark}
           fill={theme.palette.secondary.light}
           isAnimationActive={false}

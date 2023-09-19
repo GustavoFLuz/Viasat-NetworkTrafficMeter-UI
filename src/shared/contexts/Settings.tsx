@@ -1,9 +1,9 @@
-import { createContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
 import { SettingsTypes as Types } from "@/shared/types"
 import channels from "@/../electron/channels"
 const { ipcRenderer } = require('electron')
 
-export const SettingsContext = createContext<Types.SettingsContext | null>(null)
+const SettingsContext = createContext<Types.SettingsContext | null>(null)
 
 interface SettingsProps {
     children: React.ReactNode
@@ -50,4 +50,14 @@ export const SettingsProvider: React.FC<SettingsProps> = ({ children }) => {
             {children}
         </SettingsContext.Provider>
     )
+}
+
+export const useSettings = () => {
+    const context = useContext(SettingsContext);
+
+    if(context===null){
+        throw new Error("Settings context is null")
+    }
+
+    return context
 }

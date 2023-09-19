@@ -1,10 +1,11 @@
-import { createContext, useContext, useEffect, useReducer, useState } from "react"
-import { ByteToNumber, NumberToByte } from "@/utils/ByteUtils"
-import { NetworkUsageTypes as Types } from "@/shared/types"
-import { NetworkUsageData } from './../types/NetworkUsage';
-import { SettingsContext, NotificationContext, NotificationProvider } from ".";
+import { NetworkUsageTypes as Types } from "@/shared/types";
+import { NumberToByte } from "@/utils/ByteUtils";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useNotification, useSettings } from ".";
+import { Alert } from "../types/Notifications";
+import { NetworkRecord } from './../types/NetworkUsage';
 
-export const NetworkUsageContext = createContext<Types.NetworkUsageContext | null>(null)
+const NetworkUsageContext = createContext<Types.NetworkUsageContext | null>(null)
 
 interface NetworkUsageDataProps {
     children: React.ReactNode
@@ -12,70 +13,54 @@ interface NetworkUsageDataProps {
 
 export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({ children }) => {
     // Data states
-    const [networkUsageData, setNetworkUsageData] = useState<Types.NetworkUsageData[]>([])
-    const [totalHistory, setTotalHistory] = useState<Types.GroupedTotalData[]>(create30lengthArray("Total", "-1"))
-    const [processesHistory, setProcessesHistory] = useState<(Types.GroupedTotalData & { pid: string })[][]>([])
+    const [networkUsage, setNetworkUsage] = useState<Types.NetworkUsageRecord>({})
+    const [totalNotified, setTotalNotified] = useState<boolean>(false)
+    const totalUsage = calculateNewTotal(networkUsage, totalNotified)
 
     const [selectedProcess, setSelectedProcess] = useState<string | null>(null)
-    const [selectedData, setSelectedData] = useState<Types.GroupedTotalData[]>(create30lengthArray("Total"))
+    const [selectedData, setSelectedData] = useState<Types.NetworkUsageData>(totalUsage)
 
-    const { settings: { notifications } } = useContext(SettingsContext)!
-    const { notify } = useContext(NotificationContext)!
+    const { settings: { notifications } } = useSettings()
+    const { notify } = useNotification()
 
     // State operations
-
-    //Process of adding new data to current state\
+    //Process of adding new data to current state
     const addData = (rawData: string) => {
-        setNetworkUsageData((prev) => {
-            const notifiedProcesses = prev.filter((process: Types.NetworkUsageData) => process.notified).map((process: Types.NetworkUsageData) => process.pid)
+        const data = JSON.parse(rawData)
+        let newNetworkUsage: Record<string, Types.NetworkUsageData> = {}
 
-            const formatedData = convertToJson(rawData, notifiedProcesses)
-            if (formatedData === null) return prev
-
-            formatedData.forEach((process) => {
-                if (notifications.enabled && notifications.processUsage > 0) {
-                    if (!process.notified && process.total_value >= notifications.processUsage) {
-                        notify(process.pid, `${process.name} reached usage of ${NumberToByte(notifications.processUsage)}`, "warning")
-                        process.notified = true;
-                    }
-                }
-            })
-            return formatedData
+        const newNotificationList: Alert[] = []
+        setNetworkUsage((prev: Types.NetworkUsageRecord) => {
+            newNetworkUsage = joinPreviousCurrentData(prev, data);
+            if (notifications.enabled && notifications.processUsage > 0) {
+                Object.values(newNetworkUsage).forEach(process => {
+                    if (process.Notified || process.Total < notifications.processUsage) return;
+                    newNotificationList.push({ id: process.Name, type: "warning", message: `${process.Name} reached usage of ${NumberToByte(notifications.processUsage)}` })
+                    process.Notified = true;
+                })
+            }
+            return newNetworkUsage
         })
+
+        newNotificationList.forEach(notification => {
+            notify(notification)
+        })
+        return newNetworkUsage;
     }
 
     useEffect(() => {
-        const newTotal = {
-            pid: "-1",
-            name: "Total",
-            total_value: 0,
-            download_value: 0,
-            upload_value: 0,
-            time: Date.now()
-        }
-        const newProcesseshistory = networkUsageData.map((process) => {
-            newTotal.total_value += process.total_value
-            newTotal.download_value += process.download_value
-            newTotal.upload_value += process.upload_value
+        if (!notifications.enabled || !notifications.totalUsage) return
+        setTotalNotified(prev => {
+            if (prev) return true;
 
-            const existingProcess = processesHistory.find((history) => history[0].pid === process.pid)
-            const newData = { ...process, time: Date.now() }
-            if (existingProcess) {
-                return [...existingProcess, newData].slice(-31)
-            }
+            const total = Object.values(networkUsage).reduce((sum, current) => sum + current.Total, 0)
+            if (total < notifications.totalUsage) return false
 
-            return [...create30lengthArray(process.name, process.pid), newData].slice(-31)
+            notify({ id: "Total", type: "error", message: `Total consumption reached usage of ${NumberToByte(notifications.totalUsage)}` })
+            setTotalNotified(true)
+            return true
         })
-        let notifyTotal = totalHistory[totalHistory.length - 1].notified
-        if (!notifyTotal && notifications.enabled && notifications.processUsage > 0) {
-            if (newTotal.total_value >= notifications.totalUsage) {
-                notify(newTotal.pid, `Total consumption reached usage of ${NumberToByte(notifications.totalUsage)}`, "error")
-                notifyTotal = true;
-            }
-        }
-        setTotalHistory((prev) => [...prev, { ...newTotal, time: Date.now(), notified: Boolean(notifyTotal) }].splice(-31))
-        setProcessesHistory(newProcesseshistory)
-    }, [networkUsageData])
+    }, [networkUsage])
 
     // Selection operations
     const selectProcess = (pid: string) => {
@@ -83,19 +68,18 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({ children
     }
 
     useEffect(() => {
-        if (selectedProcess === null)
-            return setSelectedData(totalHistory)
-        const selectedProcessHistory = processesHistory.find((history) => history[0].pid === selectedProcess)
-        if (selectedProcessHistory)
-            setSelectedData(selectedProcessHistory)
-    }, [selectedProcess, processesHistory, totalHistory])
+        if (selectedProcess === null) return setSelectedData(totalUsage)
+        if (networkUsage[selectedProcess] !== undefined) return setSelectedData(networkUsage[selectedProcess])
+
+        setSelectedProcess(null)
+        setSelectedData(totalUsage)
+    }, [selectedProcess, networkUsage])
 
     return (
         <NetworkUsageContext.Provider value={{
             data: {
-                current: networkUsageData,
-                totalHistory: totalHistory,
-                processesHistory: processesHistory,
+                current: networkUsage,
+                totalHistory: totalUsage,
                 add: addData,
                 selected: selectedData
             },
@@ -109,37 +93,106 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({ children
     )
 }
 
-function convertToJson(rawString: string, notified: string[]): NetworkUsageData[] | null {
-    const body = rawString
-        .replaceAll(/\n/g, "")
-        .split("\r")
-        .filter((section: string) => section)
-        .at(-1);
-    if (body !== undefined) {
-        return JSON.parse(body).map((process: any) => {
-            const download_value = ByteToNumber(process.download);
-            const upload_value = ByteToNumber(process.upload);
-            const total_value = download_value + upload_value;
-            return {
-                ...process,
-                download_value,
-                upload_value,
-                total_value,
-                total: NumberToByte(total_value),
-                notified: notified.includes(process.pid),
-            }
-        })
+export const useNetworkData = () => {
+    const context = useContext(NetworkUsageContext);
+
+    if (context === null) {
+        throw new Error("Network usage context is null")
     }
-    return null
+
+    return context
 }
 
-function create30lengthArray(name: string, pid?: string) {
-    return Array.from({ length: 30 }, (_, i) => ({
-        name: name,
-        pid: pid || "",
-        total_value: 0,
-        download_value: 0,
-        upload_value: 0,
-        time: Date.now() - (i * 1000)
-    }))
+//Utils
+function emptyRecordArray(name: string): NetworkRecord[] {
+    return Array.from({ length: 30 }, (_, i) => emptyRecordObject(name, 30000 - (i * 1000)))
+}
+function emptyRecordObject(name: string, timeOffSet?: number): NetworkRecord {
+    return { Name: name, Upload: 0, Download: 0, Total: 0, Processes: {}, Protocols: {}, Hosts: {}, Time: new Date().getTime() - (timeOffSet ? timeOffSet : 0) }
+}
+
+function formatNewRecord(newRecord: Types.SocketNetworkData): Types.NetworkRecord {
+    return { ...newRecord, Total: newRecord.Upload + newRecord.Download, Time: new Date().getTime() }
+}
+
+//Adding new data
+function joinPreviousCurrentData(oldData: Types.NetworkUsageRecord, newData: Types.SocketNetworkRecord) {
+    const newNetworkUsage: Record<string, Types.NetworkUsageData> = {};
+    Object.keys(newData).forEach((process_name: string) => {
+        if (oldData[process_name] !== undefined)
+            return newNetworkUsage[process_name] = addNewData(oldData[process_name], newData[process_name]);
+        const newProcess = formatData(newData[process_name]);
+        newNetworkUsage[process_name] = newProcess;
+    })
+    Object.keys(oldData).forEach((process_name: string) => {
+        if (newNetworkUsage[process_name] !== undefined) return;
+        newNetworkUsage[process_name] = addNewData(oldData[process_name], emptyRecordObject(process_name))
+    })
+    return Object.fromEntries(
+        Object.entries(newNetworkUsage)
+            .filter(([_, value]) => value.Total > 0)
+    )
+}
+
+function formatData(data: Types.SocketNetworkData): Types.NetworkUsageData {
+    return {
+        Name: data.Name,
+        Upload: data.Upload,
+        Download: data.Download,
+        Total: data.Upload + data.Download,
+        Notified: false,
+        Records: [...emptyRecordArray(data.Name), formatNewRecord(data)].slice(-30)
+    };
+}
+function addNewData(oldData: Types.NetworkUsageData, newData: Types.SocketNetworkData): Types.NetworkUsageData {
+    const newRecords = [...oldData.Records, formatNewRecord(newData)].slice(-30);
+    return {
+        Name: oldData.Name,
+        Notified: oldData.Notified,
+        Upload: newRecords.reduce((sum, curr) => sum + curr.Upload, 0),
+        Download: newRecords.reduce((sum, curr) => sum + curr.Download, 0),
+        Total: newRecords.reduce((sum, curr) => sum + curr.Total, 0),
+        Records: newRecords
+    }
+}
+
+//Adding new total
+function calculateNewTotal(currentData: Types.NetworkUsageRecord, notified: boolean): Types.NetworkUsageData {
+    const newTotal = {
+        Name: "Total",
+        Total: 0,
+        Download: 0,
+        Upload: 0,
+        Notified: notified,
+        Records: emptyRecordArray("Total")
+    };
+    newTotal.Records = newTotal.Records.map((record: Types.NetworkRecord, index: number) => {
+        return {
+            ...record,
+            ...Object.keys(currentData).reduce((totalSum, process: string) => {
+                return {
+                    Upload: totalSum.Upload + currentData[process].Records[index].Upload,
+                    Download: totalSum.Download + currentData[process].Records[index].Download,
+                    Total: totalSum.Total + currentData[process].Records[index].Total,
+                }
+            }, { Upload: 0, Download: 0, Total: 0 })
+        }
+    })
+    newTotal.Download = newTotal.Records.reduce((sum: number, curr: Types.NetworkRecord) => sum + curr.Download, 0)
+    newTotal.Upload = newTotal.Records.reduce((sum: number, curr: Types.NetworkRecord) => sum + curr.Upload, 0)
+    newTotal.Total = newTotal.Records.reduce((sum: number, curr: Types.NetworkRecord) => sum + curr.Total, 0)
+    return newTotal
+}
+
+// Calculate cummulative usage of Records
+export function getCummulativeUsageOfProcess(notCummulativeData: Types.NetworkUsageData) {
+    const data = structuredClone(notCummulativeData);
+    data.Records = data.Records.map((record: Types.NetworkRecord, index: number) => {
+        if (index === 0) return record
+        record.Download += data.Records[index - 1].Download
+        record.Upload += data.Records[index - 1].Upload
+        record.Total += data.Records[index - 1].Total
+        return record
+    })
+    return data
 }

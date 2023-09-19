@@ -1,26 +1,24 @@
-import React, { useContext, useEffect, useReducer, useState } from 'react'
-import { TopBar, AreaChart, PieChart, AppList } from './components'
-import { Box, Paper, Typography } from '@mui/material'
-import { NetworkUsageContext } from '@/shared/contexts';
-import { useTheme } from '@mui/material/styles';
-import { GroupedTotalData as GroupedDataType } from '@/shared/types/NetworkUsage';
 import { TitleBarHeight } from '@/layout';
-import channels from "@/../electron/channels"
-const { ipcRenderer } = window.require("electron");
+import { getCummulativeUsageOfProcess, useNetworkData, useNotification } from '@/shared/contexts';
+import { Box, Paper, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { useEffect, useState } from 'react';
+import { AppList, AreaChart, PieChart, TopBar } from './components';
 
 export const Dashboard = () => {
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-    const { data: { current, selected: data, add } } = useContext(NetworkUsageContext)!;
+    const { data: { current, selected: data, add } } = useNetworkData();
 
     const theme = useTheme();
 
     useEffect(() => {
-        ipcRenderer.on(channels.data.process, (_event: any, rawData: any) => {
-            //console.log(rawData.length)
-            add(rawData)
-        });
-        return () => { ipcRenderer.removeAllListeners(channels.data.process) };
-    }, [])
+        const socket = new WebSocket('ws://localhost:50000');
+        socket.addEventListener('open', () => console.log('WebSocket connected'));
+        socket.addEventListener('message', (event) => add(event.data));
+        socket.addEventListener('close', () => console.log('WebSocket closed'));
+        return () => socket.close();
+    }, []);
+
 
     return (
         <Box sx={{ height: "100%", width: "100%" }}>
@@ -35,7 +33,7 @@ export const Dashboard = () => {
                     <Box sx={{ width: "30%" }}>
                         <Paper sx={{ width: "100%", height: "100%", p: 3, boxSizing: "border-box" }}>
                             <Typography variant="h6" textAlign="center">Network usage</Typography>
-                            <PieChart data={data[data.length-1]} />
+                            <PieChart data={data} />
                         </Paper>
                     </Box>
                     <Box sx={{
@@ -45,35 +43,15 @@ export const Dashboard = () => {
                     }}>
                         <Paper sx={{ width: "100%", height: `calc(50% - ${theme.spacing(1)})`, p: 3, boxSizing: "border-box" }}>
                             <Typography variant="h6" textAlign="center">Network usage</Typography>
-                            <AreaChart data={formatToInstantUsage(data)} />
+                            <AreaChart data={data} />
                         </Paper>
                         <Paper sx={{ width: "100%", height: `calc(50% - ${theme.spacing(1)})`, p: 3, boxSizing: "border-box" }}>
                             <Typography variant="h6" textAlign="center">Cumulative network usage</Typography>
-                            <AreaChart data={data.slice(-30)} />
+                            <AreaChart data={getCummulativeUsageOfProcess(data)} />
                         </Paper>
                     </Box>
                 </Box>
             </AppList >
         </Box >
     )
-}
-
-// Formats cumulative consumption to consumption in the last second
-function formatToInstantUsage(data: (GroupedDataType & { time: number })[]) {
-    return data.map((element: any, index: number) => {
-        if (index === 0) return {
-            name: element.name,
-            time: element.time,
-            total_value: 0,
-            download_value: 0,
-            upload_value: 0,
-        }
-        return {
-            name: element.name,
-            time: element.time,
-            total_value: element.total_value - data[index - 1].total_value,
-            download_value: element.download_value - data[index - 1].download_value,
-            upload_value: element.upload_value - data[index - 1].upload_value,
-        }
-    }).slice(-30)
 }

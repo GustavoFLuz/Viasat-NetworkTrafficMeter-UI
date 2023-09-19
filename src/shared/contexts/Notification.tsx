@@ -1,7 +1,7 @@
-import { createContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
 import { NotificationTypes as Types } from "@/shared/types"
 
-export const NotificationContext = createContext<Types.NotificationContext | null>(null)
+const NotificationContext = createContext<Types.NotificationContext | null>(null)
 
 interface NotificationProps {
     children: React.ReactNode
@@ -10,13 +10,12 @@ interface NotificationProps {
 export const NotificationProvider: React.FC<NotificationProps> = ({ children }) => {
     const [alerts, setAlerts] = useState<Types.Alert[]>([])
 
-
-    const notify = (pid: string, message: string, type: Types.AlertTypes) => {
-        setAlerts(prev => [{ pid, type, message }, ...prev])
+    const notify = ({ id, type, message }: Types.Alert) => {
+        setAlerts(prev => prev.find(el => el.id === id) ? prev : [{ id, type, message }, ...prev])
     }
 
-    const removeAlert = (pid: string) => {
-        setAlerts(prev => prev.filter(alert => alert.pid !== pid))
+    const removeAlert = (id: string) => {
+        setAlerts(prev => prev.filter(alert => alert.id !== id))
     }
 
     return (
@@ -28,4 +27,14 @@ export const NotificationProvider: React.FC<NotificationProps> = ({ children }) 
             {children}
         </NotificationContext.Provider>
     )
+}
+
+export const useNotification = () => {
+    const context = useContext(NotificationContext);
+
+    if (context === null) {
+        throw new Error("Notification context is null")
+    }
+
+    return context
 }

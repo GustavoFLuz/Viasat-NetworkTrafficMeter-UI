@@ -1,25 +1,28 @@
-import { NetworkUsageContext } from '@/shared/contexts';
-import { TableRow, TableCell, Tooltip } from '@mui/material'
-import React, { useContext } from 'react'
+import { useNetworkData } from '@/shared/contexts';
+import { NetworkUsageData } from '@/shared/types/NetworkUsage';
+import { NumberToByte } from '@/utils/ByteUtils';
+import { TableCell, TableRow, Tooltip } from '@mui/material';
+import React from 'react';
 
 interface AppListItemProps {
-  data: any;
+  data: NetworkUsageData;
 }
 
 export const AppListItem: React.FC<AppListItemProps> = ({ data }) => {
-  const { selection: { select, selected } } = useContext(NetworkUsageContext)!;
+  const { selection: { select, selected } } = useNetworkData();
 
   return (
     <TableRow
-      key={data.pid}
+      key={data.Name}
       sx={{
         '&:last-child td, &:last-child th': { border: 0 },
         "&>td": {
+          boxSizing: "border-box",
           fontSize: 12,
           px: 1,
           borderColor: "neutral.black",
-          color: selected === data.pid ? "secondary.main" : "text.primary",
-          borderBottom: selected === data.pid ? "1px solid" : "0",
+          color: selected === data.Name ? "secondary.main" : "text.primary",
+          borderBottom: selected === data.Name ? "1px solid" : "0",
         },
         cursor: "pointer",
         "&:hover": {
@@ -31,16 +34,16 @@ export const AppListItem: React.FC<AppListItemProps> = ({ data }) => {
         },
 
       }}
-      onClick={() => select(data.pid)}
+      onClick={() => select(data.Name)}
     >
       <Tooltip title="Click to visualize this process' consumption">
         <TableCell sx={{ whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: 'hidden', }}>
-          {data.name}
+          {data.Name}
         </TableCell>
       </Tooltip>
-      <TableCell align="right">{data.download}</TableCell>
-      <TableCell align="right">{data.upload}</TableCell>
-      <TableCell align="right">{data.total}</TableCell>
+      <TableCell align="right">{NumberToByte(data.Download)}</TableCell>
+      <TableCell align="right">{NumberToByte(data.Upload)}</TableCell>
+      <TableCell align="right">{NumberToByte(data.Total)}</TableCell>
     </TableRow>
   )
 }

@@ -1,10 +1,7 @@
-import React, { useState } from 'react'
-import { Box, Button, FormControl, IconButton, InputLabel, MenuItem, NativeSelect, Select, Typography } from '@mui/material'
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import { NetworkUsageContext } from '@/shared/contexts';
+import { Box, Button, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
 import { DateTimePicker } from "@mui/x-date-pickers";
+import React, { useState } from 'react';
 
 const DateTimePickerStyles = { 
   p: 0, 

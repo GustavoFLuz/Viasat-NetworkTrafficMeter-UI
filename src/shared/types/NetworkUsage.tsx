@@ -1,10 +1,11 @@
+import { Alert } from "./Notifications";
+
 export type NetworkUsageContext = {
     data: {
-        current: NetworkUsageData[],
-        totalHistory: GroupedTotalData[],
-        processesHistory: (GroupedTotalData & { pid: string })[][],
-        add: (rawData: string) => void,
-        selected: GroupedTotalData[]
+        current: NetworkUsageRecord,
+        totalHistory: NetworkUsageData,
+        add: (rawData: string) => Record<string, NetworkUsageData>,
+        selected: NetworkUsageData
     },
     selection: {
         select: (pid: string) => void,
@@ -12,47 +13,56 @@ export type NetworkUsageContext = {
     }
 }
 
-export interface NetworkUsageData {
-    pid: string,
-    name: string,
-    download: string,
-    upload: string,
-    total: string,
-    download_value: number,
-    upload_value: number,
-    total_value: number,
-    notified: boolean,    
+export type NetworkUsageRecord = Record<string, NetworkUsageData>
 
-    download_speed: string,
-    upload_speed: string,
-    total_speed: string,
-
-    last_time_update: string,
-    create_time: string,
-
-    host_traffic:
-    {
-        host: string,
-        download: string,
-        upload: string,
-    }[],
-
-    protocol_traffic:
-    {
-        protocol: string,
-        download: string,
-        upload: string,
-    }[]
-
+export type NetworkUsageData = {
+    Name: string,
+    Download: number,
+    Upload: number,
+    Total: number,
+    Notified: boolean,
+    Records: NetworkRecord[]
 }
 
-export type GroupedTotalData = {
-    name: string,
-    total_value: number,
-    download_value: number,
-    upload_value: number,
-    time: number,
-    [key: string]: any
+export type NetworkRecord = {
+    Name: string,
+    Upload: number,
+    Download: number,
+    Total: number,
+    Processes: ProcessList,
+    Protocols: ProtocolList,
+    Hosts: HostList,
+    Time: number,
+}
+
+type ProcessList = Record<string, {
+    Pid: number,
+    Create_Time: number,
+    Update_Time: number,
+    Upload: number,
+    Download: number,
+}>
+
+type ProtocolList = Record<string, {
+    Protocol_Name: string,
+    Upload: number,
+    Download: number,
+}>
+type HostList = Record<string, {
+    Host_Name: string,
+    Upload: number,
+    Download: number,
+}>
+
+export type SocketNetworkRecord = Record<string, SocketNetworkData>
+
+export type SocketNetworkData = {
+    Name: string,
+    Download: number,
+    Upload: number,
+    Processes: ProcessList,
+    Protocols: ProtocolList,
+    Hosts: HostList
 }
 
 export type DataSettings = {

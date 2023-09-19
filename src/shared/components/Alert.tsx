@@ -1,21 +1,21 @@
 import { IconButton, Snackbar } from '@mui/material'
-import React, { useContext } from 'react'
-import { NotificationContext } from '@/shared/contexts'
+import React from 'react'
+import { useNotification } from '@/shared/contexts'
 import { Alert as CustomAlertProps } from '@/shared/types/Notifications'
-import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import MuiAlert from '@mui/material/Alert';
 import CloseIcon from '@mui/icons-material/Close';
 
-export const Alert: React.FC<CustomAlertProps> = ({ pid, message, type }) => {
-    const { removeAlert } = useContext(NotificationContext)!
+export const Alert: React.FC<CustomAlertProps> = ({ id, message, type }) => {
+    const { removeAlert } = useNotification()
 
     const handleClose = (_: any, reason?: string) => {
         if (reason === 'clickaway') return;
-        removeAlert(pid)
+        removeAlert(id)
     }
 
     return (
         <Snackbar
-            key={"Alert_" + pid}
+            key={"Alert_" + id}
             open={true}
             autoHideDuration={6000}
             onClose={handleClose}

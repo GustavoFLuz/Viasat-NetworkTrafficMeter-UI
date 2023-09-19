@@ -1,11 +1,10 @@
-import { Box, Paper, SvgIconTypeMap, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, } from '@mui/material';
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import { AppListItem } from './AppListItem';
-import { NetworkUsageContext } from '@/shared/contexts';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import { NetworkUsageData } from '@/shared/types/NetworkUsage';
@@ -22,22 +21,17 @@ const Drawer = styled(Box, { shouldForwardProp: (prop) => prop !== 'open' })<{
     backgroundColor: theme.palette.background.default,
 }))
 
-
-function createData(name: string, download: number, upload: number) {
-    return { name, download, upload };
-}
-
 interface AppListProps {
     children?: React.ReactNode;
     drawerOpen: boolean;
     data: any;
 }
 
-type SortingOptions = "name" | "download_value" | "upload_value" | "total_value"
+type SortingOptions = "Name" | "Download" | "Upload" | "Total"
 
 export const AppList: React.FC<AppListProps> = ({ children, drawerOpen, data }) => {
-    const [sortedData, setSortedData] = useState<NetworkUsageData[]>(data);
-    const [sorting, setSorting] = useState<SortingOptions>("total_value");
+    const [sortedData, setSortedData] = useState<NetworkUsageData[]>(Object.values(data));
+    const [sorting, setSorting] = useState<SortingOptions>("Total");
     const [sortingDirection, setSortingDirection] = useState<1 | -1>(-1);
 
     const changeSorting = (column: SortingOptions) => {
@@ -53,11 +47,12 @@ export const AppList: React.FC<AppListProps> = ({ children, drawerOpen, data }) 
     }
 
     useEffect(() => {
-        setSortedData(data.sort((a: any, b: any) =>
-            typeof (a[sorting]) === "string" ?
-                sortingDirection * a[sorting].localeCompare(b[sorting])
-                : sortingDirection * (a[sorting] - b[sorting])
-        ))
+        setSortedData(Object.keys(data)
+            .sort((a, b) => typeof (data[a][sorting]) === "string" ?
+                sortingDirection * data[a][sorting].localeCompare(data[b][sorting])
+                : sortingDirection * (data[a][sorting] - data[b][sorting])
+            )
+            .map(key => data[key]))
     }, [data, sorting, sortingDirection])
 
     return (
@@ -70,37 +65,37 @@ export const AppList: React.FC<AppListProps> = ({ children, drawerOpen, data }) 
                     <Table sx={{ width: "100%", tableLayout: "auto" }} size="small" aria-label="a dense table">
                         <TableHead sx={{ height: '2em' }}>
                             <TableRow>
-                                <TableCell onClick={() => changeSorting('name')}
+                                <TableCell onClick={() => changeSorting('Name')}
                                     align="left" sx={{ minWidth: "100px", cursor: "pointer", whiteSpace: "nowrap", verticalAlign: "middle" }}>
                                     <span>Name</span>
-                                    {getSortingIcon('name')}
+                                    {getSortingIcon('Name')}
                                 </TableCell>
                                 <Tooltip title="Download">
-                                    <TableCell onClick={() => changeSorting('download_value')}
-                                        align="right" sx={{ width: "50px", px: 1, cursor: "pointer", verticalAlign: "middle" }}>
-                                        {getSortingIcon('download_value')}
+                                    <TableCell onClick={() => changeSorting('Download')}
+                                        align="right" sx={{ width: "50px", px: 1, cursor: "pointer", verticalAlign: "middle", whiteSpace: "nowrap" }}>
+                                        {getSortingIcon('Download')}
                                         <DownloadIcon fontSize='small' />
                                     </TableCell>
                                 </Tooltip>
                                 <Tooltip title="Upload">
-                                    <TableCell onClick={() => changeSorting('upload_value')}
-                                        align="right" sx={{ width: "50px", px: 1, cursor: "pointer", verticalAlign: "middle" }}>
-                                        {getSortingIcon('upload_value')}
+                                    <TableCell onClick={() => changeSorting('Upload')}
+                                        align="right" sx={{ width: "50px", px: 1, cursor: "pointer", verticalAlign: "middle", whiteSpace: "nowrap" }}>
+                                        {getSortingIcon('Upload')}
                                         <UploadIcon fontSize='small' />
                                     </TableCell>
                                 </Tooltip>
                                 <Tooltip title="Total">
-                                    <TableCell onClick={() => changeSorting('total_value')}
-                                        align="right" sx={{ width: "50px", px: 1, cursor: "pointer", verticalAlign: "middle" }}>
-                                        {getSortingIcon('total_value')}
+                                    <TableCell onClick={() => changeSorting('Total')}
+                                        align="right" sx={{ width: "50px", px: 1, cursor: "pointer", verticalAlign: "middle", whiteSpace: "nowrap" }}>
+                                        {getSortingIcon('Total')}
                                         <ImportExportIcon fontSize='small' />
                                     </TableCell>
                                 </Tooltip>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {sortedData.map((row: any) => (
-                                <AppListItem key={row.pid} data={row} />
+                            {sortedData.map((row: NetworkUsageData, index: number) => (
+                                <AppListItem key={`${row.Name}_${index}`} data={row} />
                             ))}
                         </TableBody>
                     </Table>

@@ -1,11 +1,11 @@
 export type NotificationContext = {
     alerts: Alert[],
-    notify: (pid: string, message: string, type: AlertTypes) => void;
+    notify: ({ id, type, message }: Alert) => void;
     removeAlert: (pid: string) => void;
 }
 
 export type Alert = {
-    pid: string,
+    id: string,
     message: string,
     type: AlertTypes
 }

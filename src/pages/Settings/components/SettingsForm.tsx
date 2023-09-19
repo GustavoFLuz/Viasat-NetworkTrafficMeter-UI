@@ -1,23 +1,19 @@
-import { SettingsContext } from '@/shared/contexts/Settings';
+import { useSettings } from '@/shared/contexts/Settings';
 import { SettingsType } from "@/shared/types/Settings";
 import { Box, Button, Divider, useTheme } from '@mui/material';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Notifications } from './Notifications';
 import { Plan } from './Plan';
 import { Preferences } from './Preferences';
 
 export const SettingsForm = () => {
     const theme = useTheme();
-    const { settings: currentSettings, updateSettings } = useContext(SettingsContext)!;
+    const { settings: currentSettings, updateSettings } = useSettings();
     const [formData, setFormData] = useState<SettingsType>(currentSettings);
 
     useEffect(() => {
         setFormData(currentSettings);
     }, [currentSettings])
-
-    useEffect(() => {
-        console.log(formData);
-    }, [formData])
 
     const handleChange = (newData: any) => {
         setFormData({ ...formData, ...newData });
@@ -25,7 +21,6 @@ export const SettingsForm = () => {
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
-        console.log('Form data submitted:', formData);
         updateSettings(formData);
         window.history.back()
     };

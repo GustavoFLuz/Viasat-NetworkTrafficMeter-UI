@@ -15,8 +15,8 @@ const renderCustomizedLabel = (p: any) => {
 };
 
 type PieChartData = {
-    download_value: number,
-    upload_value: number,
+    Download: number,
+    Upload: number,
     [key: string]: any
 }
 type FormatedPieChartData = { name: string, value: number }[]
@@ -34,11 +34,10 @@ export const PieChart: React.FC<PieChartProps> = ({ data }) => {
     const resizePieChart = (containerWidth: number, containerHeight: number) => {
         setChartDimensions({ width: containerWidth, height: containerHeight, radius: Math.floor((Math.min(containerWidth, containerHeight) * RADIUS_PROPORTION) / 2) })
     }
-
     useEffect(() => {
         setFormatedData([
-            { name: "Download", value: data.download_value },
-            { name: "Upload", value: data.upload_value },
+            { name: "Download", value: data.Download },
+            { name: "Upload", value: data.Upload },
         ])
     }, [data])
     return (
