@@ -17,7 +17,7 @@ contextBridge.exposeInMainWorld('settings', {
   update: WriteSettings,
 });
 
-function ReadSettings(event: any) {
+export function ReadSettings() {
   try {
     const settings = fs.readFileSync('settings.json', 'utf8');
     return JSON.parse(settings);
@@ -26,16 +26,6 @@ function ReadSettings(event: any) {
   }
 }
 
-function WriteSettings(output: any) {
+export function WriteSettings(output: any) {
   return fs.writeFileSync('settings.json', JSON.stringify(output));
 }
-
-/* 
-ipcMain.once(channels.settings.get, (event) => {
-    const settings = read_settings();
-    event.reply(channels.settings.get_response, settings)
-});
-
-ipcMain.on(channels.settings.update, (_event: any, data: any) => {
-    write_settings(data);
-}); */

@@ -29,11 +29,11 @@ async function createWindow() {
    */
   browserWindow.on('ready-to-show', () => {
     browserWindow?.show();
-  });
 
-  if (import.meta.env.DEV) {
-    browserWindow?.webContents.openDevTools();
-  }
+    if (import.meta.env.DEV) {
+      browserWindow?.webContents.openDevTools();
+    }
+  });
 
   /**
    * Load the main page of the main window.
@@ -67,15 +67,7 @@ export async function restoreOrCreateWindow() {
 
   if (window === undefined) {
     window = await createWindow();
-    ipcMain.handle('window-close', () => {
-      window?.close();
-    });
-    ipcMain.handle('window-maximize', () => {
-      window?.isMaximized() ? window?.unmaximize() : window?.maximize();
-    });
-    ipcMain.handle('window-minimize', () => {
-      window?.minimize();
-    });
+    if(window) ipcMainEvents(window)
   }
 
   if (window.isMinimized()) {
@@ -83,4 +75,16 @@ export async function restoreOrCreateWindow() {
   }
 
   window.focus();
+}
+
+export function ipcMainEvents(window: Electron.BrowserWindow) {
+  ipcMain.handle('window-close', () => {
+    window.close();
+  });
+  ipcMain.handle('window-maximize', () => {
+    window.isMaximized() ? window?.unmaximize() : window.maximize();
+  });
+  ipcMain.handle('window-minimize', () => {
+    window.minimize();
+  });
 }
