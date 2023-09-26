@@ -2,24 +2,28 @@
   "name": "networktrafficmeter",
   "private": true,
   "version": "0.0.0",
-  "main": "dist-electron/main/index.js",
-  "author": "author",
-  "description": "description",
-  "debug": {
-    "env": {
-      "VITE_DEV_SERVER_URL": "http://127.0.0.1:7777/"
-    }
-  },
-  "build": {
-    "productName": "NetworkTrafficMeter"
-  },
+  "main": "packages/main/dist/index.cjs",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "electron-updater": "^6.1.1"
+    "build": "npm run build:main && npm run build:preload && npm run build:renderer",
+    "build:main": "cd ./packages/main && vite build",
+    "build:preload": "cd ./packages/preload && vite build",
+    "build:renderer": "cd ./packages/renderer && vite build",
+    "compile": "cross-env MODE=production npm run build",
+    "compile:win": "npm run compile && electron-builder --win portable --config .electron-builder.config.js --dir --config.asar=false",
+    "compile:mac": "npm run compile && electron-builder --mac portable --config .electron-builder.config.js --dir --config.asar=false",
+    "compile:linux": "npm run compile && electron-builder --linux --config .electron-builder.config.js --dir --config.asar=false",
+    "test": "npm run test:main && npm run test:preload && npm run test:renderer && npm run test:e2e",
+    "test:e2e": "npm run build && vitest run",
+    "test:main": "vitest run -r packages/main --passWithNoTests",
+    "test:preload": "vitest run -r packages/preload --passWithNoTests",
+    "test:renderer": "vitest run -r packages/renderer --passWithNoTests",
+    "dev": "node scripts/watch.mjs",
+    "lint": "eslint . --ext js,mjs,cjs,ts,mts,cts,tsx",
+    "typecheck:main": "tsc --noEmit -p packages/main/tsconfig.json",
+    "typecheck:preload": "tsc --noEmit -p packages/preload/tsconfig.json",
+    "typecheck": "npm run typecheck:main && npm run typecheck:preload && npm run typecheck:renderer",
+    "postinstall": "cross-env ELECTRON_RUN_AS_NODE=1 electron scripts/update-electron-vendors.mjs",
+    "format": "npx prettier --write \"**/*.{js,mjs,cjs,ts,mts,cts,tsx,json}\""
   },
   "devDependencies": {
     "@emotion/react": "^11.11.1",
@@ -27,29 +31,36 @@
     "@mui/icons-material": "^5.13.7",
     "@mui/material": "^5.13.7",
     "@mui/x-date-pickers": "^6.11.0",
+    "@types/node": "18.17.18",
     "@types/react": "^18.2.14",
     "@types/react-dom": "^18.2.6",
-    "@typescript-eslint/eslint-plugin": "^5.61.0",
-    "@typescript-eslint/parser": "^5.61.0",
+    "@typescript-eslint/eslint-plugin": "6.7.2",
     "@vitejs/plugin-react": "^4.0.1",
-    "electron": "^25.2.0",
-    "electron-builder": "^24.4.0",
-    "eslint": "^8.44.0",
-    "moment": "^2.29.4",
+    "cross-env": "7.0.3",
+    "electron": "26.2.2",
+    "electron-builder": "24.6.4",
+    "eslint": "8.49.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.1",
+    "happy-dom": "12.1.6",
+    "moment": "^2.29.4",
+    "nano-staged": "0.8.0",
+    "playwright": "1.38.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.14.1",
     "react-svg-loader": "^3.0.3",
     "recharts": "^2.7.2",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.0",
+    "simple-git-hooks": "2.9.0",
+    "typescript": "5.2.2",
+    "unplugin-auto-expose": "0.0.5",
+    "vite": "4.4.9",
     "vite-plugin-electron": "^0.12.0",
     "vite-plugin-electron-renderer": "^0.14.5",
-    "vite-plugin-svgr": "^3.2.0"
+    "vite-plugin-svgr": "^3.2.0",
+    "vitest": "0.34.5"
   },
-  "engines": {
-    "node": ">=18.16.0"
+  "dependencies": {
+    "electron-updater": "6.1.4"
   }
 }
