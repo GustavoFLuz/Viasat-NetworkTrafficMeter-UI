@@ -14,11 +14,34 @@ export const Dashboard = () => {
   const theme = useTheme();
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:50000');
-    socket.addEventListener('open', () => console.log('WebSocket connected'));
-    socket.addEventListener('message', event => add(event.data));
-    socket.addEventListener('close', () => console.log('WebSocket closed'));
-    return () => socket.close();
+    let socket: WebSocket;
+
+    const connectWebSocket = () => {
+      try {
+        socket = new WebSocket('ws://localhost:50000/ws');
+        socket.addEventListener('open', () => {
+          console.log('WebSocket connected');
+        });
+        socket.addEventListener('message', event => {
+          add(event.data);
+        });
+        socket.addEventListener('close', () => {
+          console.log('WebSocket closed');
+          setTimeout(connectWebSocket, 3000);
+        });
+      } catch (error) {
+        console.error('WebSocket error:', error);
+        setTimeout(connectWebSocket, 3000);
+      }
+    };
+
+    connectWebSocket();
+
+    return () => {
+      if (socket) {
+        socket.close();
+      }
+    };
   }, []);
 
   return (

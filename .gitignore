@@ -58,3 +58,9 @@ thumbs.db
 /.idea/csv-plugin.xml
 
 settings.json
+configuration.json
+database.db
+
+NetworkTrafficBackend-old.exe
+NetworkTrafficBackend.exe
+./settings.json

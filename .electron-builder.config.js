@@ -9,14 +9,19 @@
  * @see https://www.electron.build/configuration/configuration
  */
 module.exports = async function () {
-  const {getVersion} = await import('./version/getVersion.mjs');
+  const { getVersion } = await import('./version/getVersion.mjs');
 
   return {
+    productName: "Viasat Network Traffic Metter",
+    artifactName: "${productName}.${ext}",
     directories: {
       output: 'dist',
       buildResources: 'buildResources',
     },
-    files: ['packages/**/dist/**'],
+    files: [
+      'packages/**/dist/**',
+      'packages/main/NetworkTrafficBackend.exe',
+    ],
     extraMetadata: {
       version: getVersion(),
     },
@@ -25,5 +30,9 @@ module.exports = async function () {
     linux: {
       target: 'deb',
     },
+    nsis: {
+      oneClick: false,
+      allowToChangeInstallationDirectory: true,
+    }
   };
 };

@@ -3,13 +3,14 @@
  */
 
 import {contextBridge, ipcRenderer} from 'electron';
-import * as fs from 'fs';
+
 export {versions} from './versions';
+import {ReadSettings, WriteSettings, GetInterface} from './file';
 
 contextBridge.exposeInMainWorld('electron_window', {
-  close: () => ipcRenderer.invoke('window-close'),
-  maximize: () => ipcRenderer.invoke('window-maximize'),
-  minimize: () => ipcRenderer.invoke('window-minimize'),
+  close: () => ipcRenderer.send('window-close'),
+  maximize: () => ipcRenderer.send('window-maximize'),
+  minimize: () => ipcRenderer.send('window-minimize'),
 });
 
 contextBridge.exposeInMainWorld('settings', {
@@ -17,15 +18,16 @@ contextBridge.exposeInMainWorld('settings', {
   update: WriteSettings,
 });
 
-export function ReadSettings() {
-  try {
-    const settings = fs.readFileSync('settings.json', 'utf8');
-    return JSON.parse(settings);
-  } catch (err) {
-    return null;
-  }
-}
+contextBridge.exposeInMainWorld('backend', {
+  start: () => ipcRenderer.send('start-backend'),
+  stop: () => ipcRenderer.send('stop-backend'),
+  update_interface: (chosenInterface: Interface) =>
+    ipcRenderer.send('update-interface', chosenInterface),
+  get_interface: () => GetInterface(),
+});
 
-export function WriteSettings(output: any) {
-  return fs.writeFileSync('settings.json', JSON.stringify(output));
-}
+type Interface = {
+  Index: number;
+  Description: string;
+  Name: string;
+};

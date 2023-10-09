@@ -1,5 +1,6 @@
 import {app, BrowserWindow, ipcMain} from 'electron';
 import {join, resolve} from 'node:path';
+import {addBackendEvents} from './goProcess';
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -67,7 +68,7 @@ export async function restoreOrCreateWindow() {
 
   if (window === undefined) {
     window = await createWindow();
-    if(window) ipcMainEvents(window)
+    if (window) ipcMainEvents(window);
   }
 
   if (window.isMinimized()) {
@@ -78,13 +79,14 @@ export async function restoreOrCreateWindow() {
 }
 
 export function ipcMainEvents(window: Electron.BrowserWindow) {
-  ipcMain.handle('window-close', () => {
+  ipcMain.on('window-close', () => {
     window.close();
   });
-  ipcMain.handle('window-maximize', () => {
+  ipcMain.on('window-maximize', () => {
     window.isMaximized() ? window?.unmaximize() : window.maximize();
   });
-  ipcMain.handle('window-minimize', () => {
+  ipcMain.on('window-minimize', () => {
     window.minimize();
   });
+  addBackendEvents(window);
 }

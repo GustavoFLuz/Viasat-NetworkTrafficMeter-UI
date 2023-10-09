@@ -30,7 +30,7 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({children}
   const addData = (rawData: string) => {
     const data = JSON.parse(rawData);
     let newNetworkUsage: Record<string, Types.NetworkUsageData> = {};
-    console.log(data);
+
     const newNotificationList: Alert[] = [];
     setNetworkUsage((prev: Types.NetworkUsageRecord) => {
       newNetworkUsage = joinPreviousCurrentData(prev, data);
