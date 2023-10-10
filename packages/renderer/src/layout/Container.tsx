@@ -16,7 +16,7 @@ export const Container = () => {
       >
         <Outlet />
       </Box>
-      {alerts.length && (
+      {alerts.length!=0 && (
         <Box sx={{position: 'absolute', top: '50px', left: '50px'}}>
           <Alert
             {...alerts[0]}

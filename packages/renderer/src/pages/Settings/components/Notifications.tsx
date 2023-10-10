@@ -52,7 +52,7 @@ export const Notifications: React.FC<NotificationsProps> = ({ settings, handleCh
                         sx={{ "& .MuiFormControlLabel-label": { width: "fit-content" } }}
                     />
                 </FormGroup>
-                <Typography variant='h6'>Desktop Notifications</Typography>
+                {/* <Typography variant='h6'>Desktop Notifications</Typography>
                 <FormGroup>
                     <FormControlLabel
                         control={
@@ -71,7 +71,7 @@ export const Notifications: React.FC<NotificationsProps> = ({ settings, handleCh
                         label={settings.desktopNotifications ? "Enabled" : "Disabled"}
                         sx={{ "& .MuiFormControlLabel-label": { width: "fit-content" } }}
                     />
-                </FormGroup>
+                </FormGroup> */}
 
             </>}
             secondComponent={<>

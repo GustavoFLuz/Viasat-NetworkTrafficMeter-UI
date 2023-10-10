@@ -3,9 +3,9 @@ import { Box, Button, FormControl, InputLabel, MenuItem, Select, Typography } fr
 import { DateTimePicker } from "@mui/x-date-pickers";
 import { useState } from 'react';
 
-const DateTimePickerStyles = { 
-  p: 0, 
-  "& .MuiInputBase-input": { py: 1 }, 
+const DateTimePickerStyles = {
+  p: 0,
+  "& .MuiInputBase-input": { py: 1 },
   "& .MuiFormLabel-root": { lineHeight: ".8em", overflow:"visible" } 
 }
 
@@ -41,18 +41,18 @@ export const TopBar: React.FC<TopBarProps> = ({ toggleDrawer }) => {
           </Select>
         </FormControl>
         {timePeriod === "custom" && (<>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <DateTimePicker
-              label="FROM DATE"
-              sx={DateTimePickerStyles}
-            />
-            <Typography sx={{ fontWeight: 900 }}>:</Typography>
-            <DateTimePicker
-              label="TO DATE"
-              sx={DateTimePickerStyles}
-            />
-          </Box>
-        </>)}
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <DateTimePicker
+                label="FROM DATE"
+                sx={DateTimePickerStyles}
+              />
+              <Typography sx={{ fontWeight: 900 }}>:</Typography>
+              <DateTimePicker
+                label="TO DATE"
+                sx={DateTimePickerStyles}
+              />
+            </Box>
+          </>)}
       </Box>
       <Button onClick={() => toggleDrawer(prev => !prev)}>
         <FormatListBulletedIcon />

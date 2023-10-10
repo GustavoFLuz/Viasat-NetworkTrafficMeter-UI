@@ -2,14 +2,14 @@ import {useSettings} from '@/shared/contexts/Settings';
 import {SettingsType} from '@/shared/types/Settings';
 import {Box, Button, Divider, useTheme} from '@mui/material';
 import {useEffect, useState} from 'react';
-import {Notifications} from './Notifications';
-import {Plan} from './Plan';
-import {Preferences} from './Preferences';
+import {Notifications, Plan, Preferences, NetworkUsage} from '.';
+import {Interface} from '../../../../../types';
 
 export const SettingsForm = () => {
   const theme = useTheme();
   const {settings: currentSettings, updateSettings} = useSettings();
   const [formData, setFormData] = useState<SettingsType>(currentSettings);
+  const [currentInterface, setCurrentInterface] = useState<Interface | undefined>(window.backend.get_interface());
 
   useEffect(() => {
     setFormData(currentSettings);
@@ -19,9 +19,11 @@ export const SettingsForm = () => {
     setFormData({...formData, ...newData});
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     updateSettings(formData);
+
+    if (currentInterface !== undefined) await window.backend.update_interface(currentInterface);
     window.history.back();
   };
 
@@ -31,23 +33,25 @@ export const SettingsForm = () => {
       style={{marginTop: theme.spacing(6), userSelect: 'none'}}
     >
       <Divider />
+      <NetworkUsage
+        currentInterface={currentInterface}
+        setCurrentInterface={setCurrentInterface}
+      />
+      {/* <Divider />
       <Plan
         settings={formData.plan}
         handleChange={handleChange}
-      />{' '}
-      {/* NOT IMPLEMENTED */}
+      />{' '} */}
       <Divider />
       <Notifications
         settings={formData.notifications}
         handleChange={handleChange}
       />{' '}
-      {/* NOT IMPLEMENTED */}
-      <Divider />
+      {/* <Divider />
       <Preferences
         settings={formData.preferences}
         handleChange={handleChange}
-      />{' '}
-      {/* NOT IMPLEMENTED */}
+      />{' '} */}
       <Box sx={{position: 'absolute', bottom: '24px', right: '24px'}}>
         <Button
           variant="contained"

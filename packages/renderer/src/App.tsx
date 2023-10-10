@@ -6,6 +6,29 @@ import {LocalizationProvider} from '@mui/x-date-pickers';
 import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
 import {SettingsProvider} from './shared/contexts/Settings';
 import {NotificationProvider} from './shared/contexts';
+import {Interface} from "../../types"
+import { SettingsType } from '@/shared/types/Settings';
+
+declare global {
+  interface Window {
+    electron_window: {
+      close: () => void;
+      maximize: () => void;
+      minimize: () => void;
+    };
+    settings: {
+      get: () => any;
+      update: (settings: SettingsType) => any;
+    };
+    backend: {
+      start: () => void;
+      stop: () => void;
+      update_interface: (interface: Interface) => Promise<any>;
+      get_interface: () => Interface | undefined;
+      get_interfaces: () => Promise<Interface[]>;
+    };
+  }
+}
 
 const App = () => {
   return (

@@ -5,17 +5,7 @@ import {dialog, ipcMain} from 'electron';
 import FormData from 'form-data';
 import find from 'find-process';
 import axios from 'axios';
-
-type Interface = {
-  Index: number;
-  Description: string;
-  Name: string;
-};
-
-type configuration = {
-  pid?: number | null;
-  interface?: Interface;
-};
+import {configuration, Interface} from '../../types';
 
 export function addBackendEvents(window: Electron.BrowserWindow) {
   ipcMain.on('start-backend', () => {
@@ -26,11 +16,14 @@ export function addBackendEvents(window: Electron.BrowserWindow) {
   ipcMain.on('stop-backend', () => {
     stopProcess();
   });
-  ipcMain.on('update-interface', (_, chosenInterface) => {
-    setProcessInterface(chosenInterface);
+  ipcMain.handle('update-interface', async (_, chosenInterface) => {
+    return await setProcessInterface(chosenInterface);
   });
 
-  startProcess()
+  ipcMain.handle('get-interfaces', async () => {
+    const interfaces = await getPossibleInterfaces();
+    return interfaces;
+  });
 }
 
 async function getProcess(): Promise<number | null> {
@@ -53,7 +46,7 @@ async function getProcess(): Promise<number | null> {
   return result;
 }
 
-async function startProcess(): Promise<number | null> {
+export async function startProcess(): Promise<number | null> {
   console.log('Process Start');
   const backendPid = await getProcess();
   if (backendPid !== null) {
@@ -101,15 +94,15 @@ async function loadProcessInterface() {
     return null;
   }
   const backendInterface = backendConfig.interface as Interface;
-  console.log(`Loading interface ${backendInterface.Name}`);
-  setProcessInterface(backendInterface)
+  console.log(`Loading interface ${backendInterface.Description}`);
+  setProcessInterface(backendInterface);
 }
 
 async function setProcessInterface(chosenInterface: Interface) {
   const form = new FormData();
   form.append('interface', chosenInterface.Name.replace(/\\\\/g, '\\'));
 
-  axios
+  await axios
     .post('http://127.0.0.1:50000/devices', form)
     .then(function (response) {
       console.log('Success:', response.data.message);
@@ -132,4 +125,9 @@ function getBackendConfiguration(): configuration | null {
   } catch (err) {
     return null;
   }
+}
+
+async function getPossibleInterfaces() {
+  const data = await axios.get('http://127.0.0.1:50000/devices');
+  return data.data;
 }

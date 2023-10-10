@@ -6,6 +6,7 @@ import {contextBridge, ipcRenderer} from 'electron';
 
 export {versions} from './versions';
 import {ReadSettings, WriteSettings, GetInterface} from './file';
+import {Interface} from "../../types"
 
 contextBridge.exposeInMainWorld('electron_window', {
   close: () => ipcRenderer.send('window-close'),
@@ -21,13 +22,8 @@ contextBridge.exposeInMainWorld('settings', {
 contextBridge.exposeInMainWorld('backend', {
   start: () => ipcRenderer.send('start-backend'),
   stop: () => ipcRenderer.send('stop-backend'),
-  update_interface: (chosenInterface: Interface) =>
-    ipcRenderer.send('update-interface', chosenInterface),
+  update_interface: async (chosenInterface: Interface) =>
+    await ipcRenderer.invoke('update-interface', chosenInterface),
   get_interface: () => GetInterface(),
+  get_interfaces: async () => await ipcRenderer.invoke('get-interfaces'),
 });
-
-type Interface = {
-  Index: number;
-  Description: string;
-  Name: string;
-};

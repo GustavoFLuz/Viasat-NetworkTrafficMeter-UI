@@ -1,6 +1,6 @@
 import {app, BrowserWindow, ipcMain} from 'electron';
 import {join, resolve} from 'node:path';
-import {addBackendEvents} from './goProcess';
+import {addBackendEvents, startProcess} from './goProcess';
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -64,6 +64,7 @@ async function createWindow() {
  * Restore an existing BrowserWindow or Create a new BrowserWindow.
  */
 export async function restoreOrCreateWindow() {
+  await startProcess();
   let window = BrowserWindow.getAllWindows().find(w => !w.isDestroyed());
 
   if (window === undefined) {
