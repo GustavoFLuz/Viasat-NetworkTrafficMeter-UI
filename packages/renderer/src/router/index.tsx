@@ -16,7 +16,6 @@ export const router = createHashRouter([
         ),
         loader: async () => {
           const chosenInterface = await window.backend.get_interface();
-          console.log(chosenInterface);
           if (chosenInterface===undefined) {
             return redirect("/setinterface");
           }

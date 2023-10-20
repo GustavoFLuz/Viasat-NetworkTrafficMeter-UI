@@ -12,7 +12,6 @@ export const InterfaceSelect: React.FC<InterfaceSelectProps> = ({selected, setSe
 
   useEffect(() => {
     window.backend.get_interfaces().then(interfaces => {
-      console.log(interfaces);
       setInterfaceOptions(interfaces);
     });
   }, []);

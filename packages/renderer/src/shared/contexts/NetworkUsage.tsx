@@ -2,14 +2,57 @@ import {NetworkUsageTypes as Types} from '@/shared/types';
 import {NumberToByte} from '@/utils/ByteUtils';
 import {createContext, useContext, useEffect, useState} from 'react';
 import {useNotification, useSettings} from '.';
-import {Alert} from '../types/Notifications';
-import {NetworkRecord} from './../types/NetworkUsage';
+import {Alert} from '@/shared/types/Notifications';
+import {NetworkRecord} from '@/shared/types/NetworkUsage';
 
 const NetworkUsageContext = createContext<Types.NetworkUsageContext | null>(null);
 
 interface NetworkUsageDataProps {
   children: React.ReactNode;
 }
+
+export const TimeSpans: Types.TimeSpan[] = [
+  {
+    id: 0,
+    name: '30 seconds',
+    start: () => getUnixTime(-30 * 1000),
+    end: () => getUnixTime(),
+    synced: true,
+    custom: false,
+  },
+  {
+    id: 1,
+    name: '5 minutes',
+    start: () => getUnixTime(-5 * 60 * 1000),
+    end: () => getUnixTime(),
+    synced: false,
+    custom: false,
+  },
+  {
+    id: 2,
+    name: '1 hour',
+    start: () => getUnixTime(-60 * 60 * 1000),
+    end: () => getUnixTime(),
+    synced: false,
+    custom: false,
+  },
+  {
+    id: 3,
+    name: '1 month',
+    start: () => getUnixTime(-30 * 24 * 60 * 60 * 1000),
+    end: () => getUnixTime(),
+    synced: false,
+    custom: false,
+  },
+  {
+    id: 4,
+    name: 'Custom Range',
+    start: time => (time ? time : getUnixTime()),
+    end: time => (time ? time : getUnixTime()),
+    synced: false,
+    custom: true,
+  },
+];
 
 export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({children}) => {
   // Data states
@@ -19,6 +62,13 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({children}
 
   const [selectedProcess, setSelectedProcess] = useState<string | null>(null);
   const [selectedData, setSelectedData] = useState<Types.NetworkUsageData>(totalUsage);
+
+  const [timeSpanMode, setTimeSpanMode] = useState<number>(0);
+  const [timeSpanRange, setTimeSpanRange] = useState<[number, number]>([
+    new Date().getTime() - 60 * 60 * 1000,
+    new Date().getTime(),
+  ]);
+  const [timedNetworkUsage, setTimedNetworkUsage] = useState<Types.NetworkUsageRecord>({});
 
   const {
     settings: {notifications},
@@ -78,6 +128,7 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({children}
   };
 
   useEffect(() => {
+    if (!TimeSpans[timeSpanMode].synced) return;
     if (selectedProcess === null) return setSelectedData(totalUsage);
     if (networkUsage[selectedProcess] !== undefined)
       return setSelectedData(networkUsage[selectedProcess]);
@@ -86,11 +137,32 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({children}
     setSelectedData(totalUsage);
   }, [selectedProcess, networkUsage]);
 
+  useEffect(() => {
+    if (TimeSpans[timeSpanMode].synced) return;
+    const timeSpan = TimeSpans[timeSpanMode];
+
+    window.backend
+      .get_data(timeSpan.start(timeSpanRange[0]), timeSpan.end(timeSpanRange[1]))
+      .then(res => {
+        const totalData = calculateTotalFromQuery(
+          res === null ? [] : res,
+          timeSpan.end(timeSpanRange[1]) - timeSpan.start(timeSpanRange[0]),
+          selectedProcess ? selectedProcess : undefined,
+        );
+
+        setSelectedData(totalData);
+
+        const recordData = createRecordFromQuery(res === null ? [] : res);
+        setTimedNetworkUsage(recordData)
+      });
+    return () => {};
+  }, [selectedProcess, timeSpanMode, timeSpanRange]);
+
   return (
     <NetworkUsageContext.Provider
       value={{
         data: {
-          current: networkUsage,
+          current: TimeSpans[timeSpanMode].synced ? networkUsage : timedNetworkUsage,
           totalHistory: totalUsage,
           add: addData,
           selected: selectedData,
@@ -98,6 +170,12 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({children}
         selection: {
           select: selectProcess,
           selected: selectedProcess,
+        },
+        interval: {
+          set: setTimeSpanMode,
+          time: TimeSpans[timeSpanMode],
+          customRange: timeSpanRange,
+          setCustomRange: setTimeSpanRange,
         },
       }}
     >
@@ -117,8 +195,10 @@ export const useNetworkData = () => {
 };
 
 //Utils
-function emptyRecordArray(name: string): NetworkRecord[] {
-  return Array.from({length: 30}, (_, i) => emptyRecordObject(name, 30000 - i * 1000));
+function emptyRecordArray(name: string, timeSpan?: number): NetworkRecord[] {
+  return Array.from({length: 30}, (_, i) =>
+    emptyRecordObject(name, timeSpan ? timeSpan - i * (timeSpan / 30) : 30000 - i * 1000),
+  );
 }
 function emptyRecordObject(name: string, timeOffSet?: number): NetworkRecord {
   return {
@@ -141,7 +221,7 @@ function formatNewRecord(newRecord: Types.SocketNetworkData): Types.NetworkRecor
 function joinPreviousCurrentData(
   oldData: Types.NetworkUsageRecord,
   newData: Types.SocketNetworkRecord,
-) {
+): Types.NetworkUsageRecord {
   const newNetworkUsage: Record<string, Types.NetworkUsageData> = {};
   Object.keys(newData).forEach((process_name: string) => {
     if (oldData[process_name] !== undefined)
@@ -243,4 +323,82 @@ export function getCummulativeUsageOfProcess(notCummulativeData: Types.NetworkUs
     return record;
   });
   return data;
+}
+
+export function getUnixTime(offset: number = 0) {
+  return new Date().getTime() + offset;
+}
+
+const findClosestTimeIndex = (timeArray: number[], currentTime: number) => {
+  return timeArray.reduce(
+    (minIndex, current, index) =>
+      Math.abs(current - currentTime) < Math.abs(timeArray[minIndex] - currentTime)
+        ? index
+        : minIndex,
+    0,
+  );
+};
+
+const addRecords = (total: Types.NetworkRecord[], current: Types.SocketNetworkData) => {
+  const closestTimeIndex = findClosestTimeIndex(
+    total.map(el => el.Time),
+    current.Update_Time!,
+  );
+  const newRecord = {
+    Name: total[closestTimeIndex].Name,
+    Time: total[closestTimeIndex].Time,
+    Processes: total[closestTimeIndex].Processes,
+    Hosts: total[closestTimeIndex].Hosts,
+    Protocols: total[closestTimeIndex].Protocols,
+
+    Download: total[closestTimeIndex].Download + current.Download,
+    Upload: total[closestTimeIndex].Upload + current.Upload,
+    Total: total[closestTimeIndex].Total + current.Download + current.Upload,
+  };
+  total[closestTimeIndex] = newRecord;
+  return total;
+};
+
+export function calculateTotalFromQuery(
+  queryResults: Types.SocketNetworkData[],
+  timeSpan: number,
+  filter?: string,
+): Types.NetworkUsageData {
+  const filteredData = filter ? queryResults.filter(el => el.Name === filter) : queryResults;
+
+  return filteredData.reduce(
+    (total, current) => ({
+      Name: total.Name,
+      Total: total.Total + (current.Download + current.Upload),
+      Download: total.Download + current.Download,
+      Upload: total.Upload + current.Upload,
+      Notified: false,
+      Records: addRecords(total.Records, current),
+    }),
+    {
+      Name: filter ? filter : 'Total',
+      Total: 0,
+      Download: 0,
+      Upload: 0,
+      Notified: false,
+      Records: emptyRecordArray(filter ? filter : 'Total', timeSpan),
+    },
+  );
+}
+
+export function createRecordFromQuery(queryResults: Types.SocketNetworkData[]) {
+  const record: Types.NetworkUsageRecord = {};
+  queryResults.forEach(res => {
+    if (!record[res.Name]) return (record[res.Name] = formatData(res));
+
+    return record[res.Name] = {
+      Name: res.Name,
+      Upload: record[res.Name].Upload + res.Upload,
+      Download: record[res.Name].Download + res.Download,
+      Total: record[res.Name].Total + res.Upload + res.Download,
+      Notified: false,
+      Records: addRecords(record[res.Name].Records, res),
+    };
+  });
+  return record
 }

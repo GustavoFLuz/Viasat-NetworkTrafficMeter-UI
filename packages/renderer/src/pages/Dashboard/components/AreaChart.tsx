@@ -1,3 +1,4 @@
+import {NetworkUsageData} from '@/shared/types/NetworkUsage';
 import {NumberToByte} from '@/utils/ByteUtils';
 import {useTheme} from '@mui/material';
 import {useEffect, useState} from 'react';
@@ -12,7 +13,7 @@ import {
 } from 'recharts';
 
 interface AreaChartProps {
-  data: any;
+  data: NetworkUsageData;
 }
 
 export const AreaChart: React.FC<AreaChartProps> = ({data}) => {
@@ -23,6 +24,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({data}) => {
     setChartDimensions({width: containerWidth, height: containerHeight});
   };
 
+  const timeRange = data.Records[1].Time - data.Records[0].Time;
   const [formatedData, setFormatedData] = useState<any>([]);
 
   useEffect(() => {
@@ -45,12 +47,17 @@ export const AreaChart: React.FC<AreaChartProps> = ({data}) => {
           bottom: 0,
         }}
         syncId={'area_chart'}
+        style={{fontSize: '0.8em'}}
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           dataKey="Time"
           type="number"
-          tickFormatter={(value: number) => new Date(value).toLocaleTimeString()}
+          tickFormatter={(value: number) =>
+            timeRange >= 24 * 60 * 60 * 1000/30
+              ? new Date(value).toLocaleString()
+              : new Date(value).toLocaleTimeString()
+          }
           interval="preserveStartEnd"
           domain={['dataMin', 'dataMax']}
         />
@@ -61,7 +68,11 @@ export const AreaChart: React.FC<AreaChartProps> = ({data}) => {
             name[0].toUpperCase() + name.slice(1),
           ]}
           labelFormatter={(value: number) =>
-            `${data.Name} at: ${new Date(value).toLocaleTimeString()}`
+            `${data.Name} at: ${
+              timeRange >= 24 * 60 * 60 * 1000/30
+                ? new Date(value).toLocaleString()
+                : new Date(value).toLocaleTimeString()
+            }`
           }
         />
         <Area

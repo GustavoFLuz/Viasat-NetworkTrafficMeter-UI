@@ -24,6 +24,11 @@ export function addBackendEvents(window: Electron.BrowserWindow) {
     const interfaces = await getPossibleInterfaces();
     return interfaces;
   });
+
+  ipcMain.handle('get-data-from-time-interval', async (_, {start, end}) => {
+    const data = await getDataFromTimeInterval(start, end);
+    return data;
+  });
 }
 
 async function getProcess(): Promise<number | null> {
@@ -60,6 +65,8 @@ export async function startProcess(): Promise<number | null> {
       killSignal: 'SIGTERM',
     });
     backend.unref();
+    backend.on("message", console.log)
+
     updateBackendConfiguration({pid: backend.pid});
     console.log(`Started process ${backend.pid}`);
     setTimeout(loadProcessInterface, 1000);
@@ -129,5 +136,10 @@ function getBackendConfiguration(): configuration | null {
 
 async function getPossibleInterfaces() {
   const data = await axios.get('http://127.0.0.1:50000/devices');
+  return data.data;
+}
+
+async function getDataFromTimeInterval(begin: number, end: number){
+  const data = await axios.get(`http://127.0.0.1:50000/active-processes?initialDate=${begin}&endDate=${end}`);
   return data.data;
 }
