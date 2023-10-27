@@ -20,11 +20,10 @@ export const InterfaceSelect: React.FC<InterfaceSelectProps> = ({selected, setSe
     const found = interfaceOptions.find(el => el.Index === value);
     setSelected(found ? found : undefined);
   };
-
   return (
     <FormControl>
       <Select
-        value={selected ? selected.Index : -1}
+        value={selected && interfaceOptions.length ? selected.Index : -1}
         sx={{width: '100%'}}
         onChange={(e: SelectChangeEvent<number>) => handleSelect(e.target.value as number)}
         displayEmpty

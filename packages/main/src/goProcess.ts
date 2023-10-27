@@ -61,7 +61,7 @@ export async function startProcess(): Promise<number | null> {
   try {
     const backend = spawn(resolve(__dirname, '../NetworkTrafficBackend.exe'), [], {
       detached: true,
-      stdio: 'ignore',
+            stdio: 'ignore',
       killSignal: 'SIGTERM',
     });
     backend.unref();
@@ -109,15 +109,27 @@ async function setProcessInterface(chosenInterface: Interface) {
   const form = new FormData();
   form.append('interface', chosenInterface.Name.replace(/\\\\/g, '\\'));
 
-  await axios
-    .post('http://127.0.0.1:50000/devices', form)
-    .then(function (response) {
-      console.log('Success:', response.data.message);
-      updateBackendConfiguration({interface: chosenInterface});
-    })
-    .catch(function (error) {
-      console.error('Error:', error);
-    });
+  return new Promise((res, rej) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+      rej('Interface update timed out');
+    }, 1500);
+    axios
+      .post('http://127.0.0.1:50000/devices', form, {
+        signal: controller.signal,
+      })
+      .then(function (response) {
+        console.log('Success:', response.data.message);
+        updateBackendConfiguration({interface: chosenInterface});
+        clearTimeout(timeout);
+        res(response.data.message);
+      })
+      .catch(function (error) {
+        console.error('Error:', error);
+        rej(error);
+      });
+  });
 }
 
 function updateBackendConfiguration(update: configuration) {

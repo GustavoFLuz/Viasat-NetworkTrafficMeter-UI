@@ -1,15 +1,21 @@
 import {useSettings} from '@/shared/contexts/Settings';
 import {SettingsType} from '@/shared/types/Settings';
 import {Box, Button, Divider, useTheme} from '@mui/material';
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Notifications, Plan, Preferences, NetworkUsage} from '.';
 import {Interface} from '../../../../../types';
 
-export const SettingsForm = () => {
+type SettingsFormProps = {
+  error: (str: string) => void;
+};
+
+export const SettingsForm: React.FC<SettingsFormProps> = ({error}) => {
   const theme = useTheme();
   const {settings: currentSettings, updateSettings} = useSettings();
   const [formData, setFormData] = useState<SettingsType>(currentSettings);
-  const [currentInterface, setCurrentInterface] = useState<Interface | undefined>(window.backend.get_interface());
+  const [currentInterface, setCurrentInterface] = useState<Interface | undefined>(
+    window.backend.get_interface(),
+  );
 
   useEffect(() => {
     setFormData(currentSettings);
@@ -22,8 +28,16 @@ export const SettingsForm = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     updateSettings(formData);
-
-    if (currentInterface !== undefined) await window.backend.update_interface(currentInterface);
+    if (
+      currentInterface !== undefined &&
+      currentInterface.Description !== window.backend.get_interface()?.Description
+    )
+      try {
+        await window.backend.update_interface(currentInterface);
+      } catch (err) {
+        error(err as string);
+        return;
+      }
     window.history.back();
   };
 

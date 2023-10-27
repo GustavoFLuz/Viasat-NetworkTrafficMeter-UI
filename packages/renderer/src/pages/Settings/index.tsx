@@ -2,8 +2,13 @@ import {TitleBarHeight} from '@/layout';
 import {Box, IconButton, Typography} from '@mui/material';
 import {SettingsForm} from './components';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useState } from 'react';
 
 export const Settings = () => {
+  const [error, setError] = useState<string | undefined>()
+
+  const addError = (str: string)=> setError(str)
+
   return (
     <Box sx={{width: '100%', height: '100%'}}>
       <Box sx={{backgroundColor: 'background.paper', width: '100%', height: '3em'}}>
@@ -25,7 +30,12 @@ export const Settings = () => {
           >
             Settings
           </Typography>
-          <SettingsForm />
+          {error?
+          <Box sx={{color: 'error.main'}}>
+            <Typography>{error}</Typography>
+          </Box>:
+          <></>}
+          <SettingsForm error={addError}/>
         </Box>
       </Box>
     </Box>
