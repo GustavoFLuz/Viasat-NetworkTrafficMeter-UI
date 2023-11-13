@@ -61,6 +61,5 @@ settings.json
 configuration.json
 database.db
 
-NetworkTrafficBackend-old.exe
-NetworkTrafficBackend.exe
+*.exe
 ./settings.json
