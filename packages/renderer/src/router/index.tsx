@@ -15,6 +15,7 @@ export const router = createHashRouter([
           </NetworkUsageProvider>
         ),
         loader: async () => {
+          await new Promise(res=>setTimeout(res, 100))
           const chosenInterface = await window.backend.get_interface();
           if (chosenInterface===undefined) {
             return redirect("/setinterface");

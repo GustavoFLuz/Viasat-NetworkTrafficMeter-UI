@@ -1,6 +1,7 @@
 import {app, BrowserWindow, ipcMain} from 'electron';
 import {join, resolve} from 'node:path';
 import {addBackendEvents, startProcess} from './goProcess';
+import {addSettingsEvents} from './settings';
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -56,7 +57,7 @@ async function createWindow() {
      */
     await browserWindow.loadFile(resolve(__dirname, '../../renderer/dist/index.html'));
   }
-
+  
   return browserWindow;
 }
 
@@ -90,4 +91,5 @@ export function ipcMainEvents(window: Electron.BrowserWindow) {
     window.minimize();
   });
   addBackendEvents(window);
+  addSettingsEvents();
 }

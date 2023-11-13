@@ -1,7 +1,7 @@
 import {exec, spawn} from 'child_process';
 import {resolve} from 'node:path';
 import * as fs from 'fs';
-import {dialog, ipcMain} from 'electron';
+import {dialog, ipcMain, app} from 'electron';
 import FormData from 'form-data';
 import find from 'find-process';
 import axios from 'axios';
@@ -23,6 +23,10 @@ export function addBackendEvents(window: Electron.BrowserWindow) {
   ipcMain.handle('get-interfaces', async () => {
     const interfaces = await getPossibleInterfaces();
     return interfaces;
+  });
+
+  ipcMain.handle('get-interface', async () => {
+    return await getInterface();
   });
 
   ipcMain.handle('get-data-from-time-interval', async (_, {start, end}) => {
@@ -61,11 +65,11 @@ export async function startProcess(): Promise<number | null> {
   try {
     const backend = spawn(resolve(__dirname, '../NetworkTrafficBackend.exe'), [], {
       detached: true,
-            stdio: 'ignore',
+      stdio: 'ignore',
       killSignal: 'SIGTERM',
     });
     backend.unref();
-    backend.on("message", console.log)
+    backend.on('message', console.log);
 
     updateBackendConfiguration({pid: backend.pid});
     console.log(`Started process ${backend.pid}`);
@@ -106,6 +110,8 @@ async function loadProcessInterface() {
 }
 
 async function setProcessInterface(chosenInterface: Interface) {
+  const currentInterface = getInterface();
+  if(currentInterface.Name === chosenInterface.Name) return
   const form = new FormData();
   form.append('interface', chosenInterface.Name.replace(/\\\\/g, '\\'));
 
@@ -134,12 +140,19 @@ async function setProcessInterface(chosenInterface: Interface) {
 
 function updateBackendConfiguration(update: configuration) {
   const currentJson = getBackendConfiguration();
-  fs.writeFileSync('configuration.json', JSON.stringify({...currentJson, ...update}));
+
+  fs.writeFileSync(
+    app.getPath('appData') + '/networktrafficmeter/configuration.json',
+    JSON.stringify({...currentJson, ...update}),
+  );
 }
 
 function getBackendConfiguration(): configuration | null {
   try {
-    const settings = fs.readFileSync('configuration.json', 'utf8');
+    const settings = fs.readFileSync(
+      app.getPath('appData') + '/networktrafficmeter/configuration.json',
+      'utf8',
+    );
     return JSON.parse(settings);
   } catch (err) {
     return null;
@@ -151,7 +164,22 @@ async function getPossibleInterfaces() {
   return data.data;
 }
 
-async function getDataFromTimeInterval(begin: number, end: number){
-  const data = await axios.get(`http://127.0.0.1:50000/active-processes?initialDate=${begin}&endDate=${end}`);
+function getInterface() {
+  try {
+    const settings = fs.readFileSync(
+      app.getPath('appData') + '/networktrafficmeter/configuration.json',
+      'utf8',
+    );
+    const jsonSettings = JSON.parse(settings);
+    return jsonSettings.interface;
+  } catch (err) {
+    return null;
+  }
+}
+
+async function getDataFromTimeInterval(begin: number, end: number) {
+  const data = await axios.get(
+    `http://127.0.0.1:50000/active-processes?initialDate=${begin}&endDate=${end}`,
+  );
   return data.data;
 }

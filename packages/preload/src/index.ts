@@ -5,7 +5,6 @@
 import {contextBridge, ipcRenderer} from 'electron';
 
 export {versions} from './versions';
-import {ReadSettings, WriteSettings, GetInterface} from './file';
 import {Interface} from '../../types';
 
 contextBridge.exposeInMainWorld('electron_window', {
@@ -15,8 +14,8 @@ contextBridge.exposeInMainWorld('electron_window', {
 });
 
 contextBridge.exposeInMainWorld('settings', {
-  get: ReadSettings,
-  update: WriteSettings,
+  get: () => ipcRenderer.invoke('get-settings'),
+  update: (output: any) => ipcRenderer.invoke('update-settings', output),
 });
 
 contextBridge.exposeInMainWorld('backend', {
@@ -24,7 +23,9 @@ contextBridge.exposeInMainWorld('backend', {
   stop: () => ipcRenderer.send('stop-backend'),
   update_interface: async (chosenInterface: Interface) =>
     await ipcRenderer.invoke('update-interface', chosenInterface),
-  get_interface: () => GetInterface(),
+  get_interface: async () => {
+    return await ipcRenderer.invoke('get-interface');
+  },
   get_interfaces: async () => await ipcRenderer.invoke('get-interfaces'),
   get_data: async (start: number, end: number) =>
     await ipcRenderer.invoke('get-data-from-time-interval', {start, end}),

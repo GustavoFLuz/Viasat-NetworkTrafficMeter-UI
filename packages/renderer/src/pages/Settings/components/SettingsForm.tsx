@@ -13,9 +13,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({error}) => {
   const theme = useTheme();
   const {settings: currentSettings, updateSettings} = useSettings();
   const [formData, setFormData] = useState<SettingsType>(currentSettings);
-  const [currentInterface, setCurrentInterface] = useState<Interface | undefined>(
-    window.backend.get_interface(),
-  );
+  const [currentInterface, setCurrentInterface] = useState<Interface | undefined>();
+  
+  useEffect(() => {
+    window.backend.get_interface().then(setCurrentInterface);
+  }, []);
 
   useEffect(() => {
     setFormData(currentSettings);
@@ -28,10 +30,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({error}) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     updateSettings(formData);
-    if (
-      currentInterface !== undefined &&
-      currentInterface.Description !== window.backend.get_interface()?.Description
-    )
+    console.log(currentInterface);
+    if (currentInterface !== undefined)
       try {
         await window.backend.update_interface(currentInterface);
       } catch (err) {

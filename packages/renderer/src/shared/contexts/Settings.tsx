@@ -23,9 +23,10 @@ export const SettingsProvider: React.FC<SettingsProps> = ({children}) => {
   });
 
   useEffect(() => {
-    const savedSettings = window.settings.get();
-    if (!savedSettings) return window.settings.update(settings);
-    setSettings(savedSettings);
+    window.settings.get().then(savedSettings=>{
+      if (!savedSettings) return window.settings.update(settings);
+      setSettings(savedSettings);
+    })
   }, []);
 
   useEffect(() => {
