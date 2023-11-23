@@ -14,6 +14,8 @@ export type NetworkUsageContext = {
     time: TimeSpan;
     customRange: [number, number];
     setCustomRange: (range: [number, number]) => void;
+    loading: boolean;
+    setLoading: (loading: boolean) => void;
   };
 };
 

@@ -69,6 +69,7 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({children}
     new Date().getTime(),
   ]);
   const [timedNetworkUsage, setTimedNetworkUsage] = useState<Types.NetworkUsageRecord>({});
+  const [queryLoading, setQueryLoading] = useState<boolean>(false);
 
   const {
     settings: {notifications},
@@ -139,6 +140,7 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({children}
 
   useEffect(() => {
     if (TimeSpans[timeSpanMode].synced) return;
+    setQueryLoading(true)
     const timeSpan = TimeSpans[timeSpanMode];
 
     window.backend
@@ -154,6 +156,7 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({children}
 
         const recordData = createRecordFromQuery(res === null ? [] : res);
         setTimedNetworkUsage(recordData)
+        setQueryLoading(false)
       });
     return () => {};
   }, [selectedProcess, timeSpanMode, timeSpanRange]);
@@ -176,6 +179,8 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({children}
           time: TimeSpans[timeSpanMode],
           customRange: timeSpanRange,
           setCustomRange: setTimeSpanRange,
+          loading: queryLoading,
+          setLoading: setQueryLoading
         },
       }}
     >

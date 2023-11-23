@@ -4,11 +4,12 @@ import {Box, Paper, Typography} from '@mui/material';
 import {useTheme} from '@mui/material/styles';
 import {useEffect, useState} from 'react';
 import {AppList, AreaChart, PieChart, TopBar} from './components';
+import { LoadingIcon } from '@/shared/components';
 
 export const Dashboard = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const {
-    data: {current, selected: data, add},
+    data: {current, selected: data, add}, interval: {loading}
   } = useNetworkData();
 
   const theme = useTheme();
@@ -65,7 +66,7 @@ export const Dashboard = () => {
           }}
         >
           <Box sx={{width: '30%'}}>
-            <Paper sx={{width: '100%', height: '100%', p: 3, boxSizing: 'border-box'}}>
+            <Paper sx={{width: '100%', height: '100%', p: 3, boxSizing: 'border-box', position:"relative"}}>
               <Typography
                 variant="h6"
                 textAlign="center"
@@ -73,6 +74,7 @@ export const Dashboard = () => {
                 Network usage
               </Typography>
               <PieChart data={data} />
+              {loading && <LoadingIcon size='50px'/>}
             </Paper>
           </Box>
           <Box
@@ -91,6 +93,7 @@ export const Dashboard = () => {
                 height: `calc(50% - ${theme.spacing(1)})`,
                 p: 3,
                 boxSizing: 'border-box',
+                position:"relative"
               }}
             >
               <Typography
@@ -100,6 +103,7 @@ export const Dashboard = () => {
                 Network usage
               </Typography>
               <AreaChart data={data} />
+              {loading && <LoadingIcon size='50px'/>}
             </Paper>
             <Paper
               sx={{
@@ -107,6 +111,7 @@ export const Dashboard = () => {
                 height: `calc(50% - ${theme.spacing(1)})`,
                 p: 3,
                 boxSizing: 'border-box',
+                position:"relative"
               }}
             >
               <Typography
@@ -116,6 +121,7 @@ export const Dashboard = () => {
                 Cumulative network usage
               </Typography>
               <AreaChart data={getCummulativeUsageOfProcess(data)} />
+              {loading && <LoadingIcon size='50px'/>}
             </Paper>
           </Box>
         </Box>
