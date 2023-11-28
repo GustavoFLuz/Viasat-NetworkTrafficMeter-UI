@@ -6,7 +6,6 @@ import {LocalizationProvider} from '@mui/x-date-pickers';
 import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
 import {SettingsProvider} from './shared/contexts/Settings';
 import {NotificationProvider} from './shared/contexts';
-import {Interface} from '../../types';
 import {SettingsType} from '@/shared/types/Settings';
 import {SocketNetworkData} from '@/shared/types/NetworkUsage';
 
@@ -24,9 +23,6 @@ declare global {
     backend: {
       start: () => void;
       stop: () => void;
-      update_interface: (interface: Interface) => Promise<any>;
-      get_interface: () => Promise<Interface | undefined>;
-      get_interfaces: () => Promise<Interface[]>;
       get_data: (start: number, end: number) => Promise<SocketNetworkData[]>;
     };
   }

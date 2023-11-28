@@ -5,30 +5,16 @@ import {dialog, ipcMain, app} from 'electron';
 import FormData from 'form-data';
 import find from 'find-process';
 import axios from 'axios';
-import {configuration, Interface} from '../../types';
+import {configuration} from '../../types';
 
 export function addBackendEvents(window: Electron.BrowserWindow) {
   ipcMain.on('start-backend', () => {
-    startProcess().then(() => {
-      setTimeout(setProcessInterface, 1000);
-    });
+    startProcess()
   });
   ipcMain.on('stop-backend', () => {
     stopProcess();
   });
-  ipcMain.handle('update-interface', async (_, chosenInterface) => {
-    return await setProcessInterface(chosenInterface);
-  });
-
-  ipcMain.handle('get-interfaces', async () => {
-    const interfaces = await getPossibleInterfaces();
-    return interfaces;
-  });
-
-  ipcMain.handle('get-interface', async () => {
-    return await getInterface();
-  });
-
+  
   ipcMain.handle('get-data-from-time-interval', async (_, {start, end}) => {
     const data = await getDataFromTimeInterval(start, end);
     return data;
@@ -73,7 +59,6 @@ export async function startProcess(): Promise<number | null> {
 
     updateBackendConfiguration({pid: backend.pid});
     console.log(`Started process ${backend.pid}`);
-    setTimeout(loadProcessInterface, 1000);
     return backend.pid || null;
   } catch (err) {
     console.error(`Error starting process: ${err}`);
@@ -98,46 +83,6 @@ async function stopProcess() {
   });
 }
 
-async function loadProcessInterface() {
-  const backendConfig = getBackendConfiguration();
-  if (!backendConfig || !backendConfig.interface) {
-    console.log('No interface found.');
-    return null;
-  }
-  const backendInterface = backendConfig.interface as Interface;
-  console.log(`Loading interface ${backendInterface.Description}`);
-  setProcessInterface(backendInterface);
-}
-
-async function setProcessInterface(chosenInterface: Interface) {
-  const currentInterface = getInterface();
-  if(currentInterface.Name === chosenInterface.Name) return
-  const form = new FormData();
-  form.append('interface', chosenInterface.Name.replace(/\\\\/g, '\\'));
-
-  return new Promise((res, rej) => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      controller.abort();
-      rej('Interface update timed out');
-    }, 1500);
-    axios
-      .post('http://127.0.0.1:50000/devices', form, {
-        signal: controller.signal,
-      })
-      .then(function (response) {
-        console.log('Success:', response.data.message);
-        updateBackendConfiguration({interface: chosenInterface});
-        clearTimeout(timeout);
-        res(response.data.message);
-      })
-      .catch(function (error) {
-        console.error('Error:', error);
-        rej(error);
-      });
-  });
-}
-
 function updateBackendConfiguration(update: configuration) {
   const currentJson = getBackendConfiguration();
 
@@ -158,25 +103,6 @@ function getBackendConfiguration(): configuration | null {
     return null;
   }
 }
-
-async function getPossibleInterfaces() {
-  const data = await axios.get('http://127.0.0.1:50000/devices');
-  return data.data;
-}
-
-function getInterface() {
-  try {
-    const settings = fs.readFileSync(
-      app.getPath('appData') + '/networktrafficmeter/configuration.json',
-      'utf8',
-    );
-    const jsonSettings = JSON.parse(settings);
-    return jsonSettings.interface;
-  } catch (err) {
-    return null;
-  }
-}
-
 async function getDataFromTimeInterval(begin: number, end: number) {
   const data = await axios.get(
     `http://127.0.0.1:50000/active-processes?initialDate=${begin}&endDate=${end}`,

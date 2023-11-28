@@ -2,8 +2,7 @@ import {useSettings} from '@/shared/contexts/Settings';
 import {SettingsType} from '@/shared/types/Settings';
 import {Box, Button, Divider, useTheme} from '@mui/material';
 import React, {useEffect, useState} from 'react';
-import {Notifications, Plan, Preferences, NetworkUsage} from '.';
-import {Interface} from '../../../../../types';
+import {Notifications, Plan, Preferences} from '.';
 
 type SettingsFormProps = {
   error: (str: string) => void;
@@ -13,11 +12,6 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({error}) => {
   const theme = useTheme();
   const {settings: currentSettings, updateSettings} = useSettings();
   const [formData, setFormData] = useState<SettingsType>(currentSettings);
-  const [currentInterface, setCurrentInterface] = useState<Interface | undefined>();
-  
-  useEffect(() => {
-    window.backend.get_interface().then(setCurrentInterface);
-  }, []);
 
   useEffect(() => {
     setFormData(currentSettings);
@@ -30,14 +24,6 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({error}) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     updateSettings(formData);
-    console.log(currentInterface);
-    if (currentInterface !== undefined)
-      try {
-        await window.backend.update_interface(currentInterface);
-      } catch (err) {
-        error(err as string);
-        return;
-      }
     window.history.back();
   };
 
@@ -47,10 +33,6 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({error}) => {
       style={{marginTop: theme.spacing(6), userSelect: 'none'}}
     >
       <Divider />
-      <NetworkUsage
-        currentInterface={currentInterface}
-        setCurrentInterface={setCurrentInterface}
-      />
       {/* <Divider />
       <Plan
         settings={formData.plan}

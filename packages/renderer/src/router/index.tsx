@@ -14,22 +14,10 @@ export const router = createHashRouter([
             <pages.Dashboard />
           </NetworkUsageProvider>
         ),
-        loader: async () => {
-          await new Promise(res=>setTimeout(res, 100))
-          const chosenInterface = await window.backend.get_interface();
-          if (chosenInterface===undefined) {
-            return redirect("/setinterface");
-          }
-          return null;
-        },
       },
       {
         path: '/settings',
         element: <pages.Settings />,
-      },
-      {
-        path: '/setinterface',
-        element: <pages.SetInterface />,
       },
     ],
   },

@@ -32,7 +32,7 @@ export const Settings = () => {
           </Typography>
           {error?
           <Box sx={{color: 'error.main'}}>
-            <Typography>{error}</Typography>
+            <Typography>{JSON.stringify(error)}</Typography>
           </Box>:
           <></>}
           <SettingsForm error={addError}/>
