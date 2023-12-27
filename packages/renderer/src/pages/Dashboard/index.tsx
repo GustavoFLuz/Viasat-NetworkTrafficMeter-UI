@@ -1,22 +1,22 @@
-import {TitleBarHeight} from '@/layout';
-import {getCummulativeUsageOfProcess, useNetworkData} from '@/shared/contexts';
-import {Box, Paper, Typography} from '@mui/material';
-import {useTheme} from '@mui/material/styles';
-import {useEffect, useState} from 'react';
-import {AppList, AreaChart, PieChart, TopBar} from './components';
+import { TitleBarHeight } from '@/layout';
+import { getCummulativeUsageOfProcess, useNetworkData } from '@/shared/contexts';
+import { Box, Paper, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { useEffect, useState } from 'react';
+import { AppList, AreaChart, PieChart, TopBar } from './components';
 import { LoadingIcon } from '@/shared/components';
 
 export const Dashboard = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const {
-    data: {current, selected: data, add}, interval: {loading}
+    data: { processes, filteredTotal, synced, add }, interval: { loading }
   } = useNetworkData();
-
   const theme = useTheme();
 
   useEffect(() => {
+    const stopConnection = !synced || loading;
+    const timeout: NodeJS.Timeout[] = []
     let socket: WebSocket;
-
     const connectWebSocket = () => {
       try {
         socket = new WebSocket('ws://localhost:50000/ws');
@@ -28,29 +28,28 @@ export const Dashboard = () => {
         });
         socket.addEventListener('close', () => {
           console.log('WebSocket closed');
-          setTimeout(connectWebSocket, 3000);
+          timeout.push(setTimeout(connectWebSocket, 3000))
         });
       } catch (error) {
         console.error('WebSocket error:', error);
-        setTimeout(connectWebSocket, 3000);
+        timeout.push(setTimeout(connectWebSocket, 3000))
       }
     };
-
-    connectWebSocket();
+    if (!stopConnection)
+      connectWebSocket();
 
     return () => {
-      if (socket) {
-        socket.close();
-      }
+      if (socket) socket.close();
+      if (timeout.length) timeout.forEach(clearTimeout)
     };
-  }, []);
+  }, [synced, loading]);
 
   return (
-    <Box sx={{height: '100%', width: '100%'}}>
+    <Box sx={{ height: '100%', width: '100%' }}>
       <TopBar toggleDrawer={setDrawerOpen} />
       <AppList
         drawerOpen={drawerOpen}
-        data={current}
+        data={processes}
       >
         <Box
           sx={{
@@ -65,16 +64,16 @@ export const Dashboard = () => {
             px: 3,
           }}
         >
-          <Box sx={{width: '30%'}}>
-            <Paper sx={{width: '100%', height: '100%', p: 3, boxSizing: 'border-box', position:"relative"}}>
+          <Box sx={{ width: '30%' }}>
+            <Paper sx={{ width: '100%', height: '100%', p: 3, boxSizing: 'border-box', position: "relative" }}>
               <Typography
                 variant="h6"
                 textAlign="center"
               >
                 Network usage
               </Typography>
-              <PieChart data={data} />
-              {loading && <LoadingIcon size='50px'/>}
+              <PieChart data={filteredTotal} />
+              {loading && <LoadingIcon size='50px' />}
             </Paper>
           </Box>
           <Box
@@ -93,7 +92,7 @@ export const Dashboard = () => {
                 height: `calc(50% - ${theme.spacing(1)})`,
                 p: 3,
                 boxSizing: 'border-box',
-                position:"relative"
+                position: "relative"
               }}
             >
               <Typography
@@ -102,8 +101,8 @@ export const Dashboard = () => {
               >
                 Network usage
               </Typography>
-              <AreaChart data={data} />
-              {loading && <LoadingIcon size='50px'/>}
+              <AreaChart data={filteredTotal} />
+              {loading && <LoadingIcon size='50px' />}
             </Paper>
             <Paper
               sx={{
@@ -111,7 +110,7 @@ export const Dashboard = () => {
                 height: `calc(50% - ${theme.spacing(1)})`,
                 p: 3,
                 boxSizing: 'border-box',
-                position:"relative"
+                position: "relative"
               }}
             >
               <Typography
@@ -120,8 +119,8 @@ export const Dashboard = () => {
               >
                 Cumulative network usage
               </Typography>
-              <AreaChart data={getCummulativeUsageOfProcess(data)} />
-              {loading && <LoadingIcon size='50px'/>}
+              <AreaChart data={getCummulativeUsageOfProcess(filteredTotal)} />
+              {loading && <LoadingIcon size='50px' />}
             </Paper>
           </Box>
         </Box>

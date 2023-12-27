@@ -1,13 +1,13 @@
 export type NetworkUsageContext = {
   data: {
-    current: NetworkUsageRecord;
-    totalHistory: NetworkUsageData;
-    add: (rawData: string) => Record<string, NetworkUsageData>;
-    selected: NetworkUsageData;
+    processes: NetworkUsageRecord;
+    filteredTotal: NetworkUsageData;
+    add: (rawData: string) => SocketNetworkData[];
+    synced: boolean
   };
   selection: {
-    select: (pid: string) => void;
-    selected: string | null;
+    filter: (pid: string) => void;
+    filtered: string[];
   };
   interval: {
     set: (id: number) => void;
@@ -26,7 +26,6 @@ export type NetworkUsageData = {
   Download: number;
   Upload: number;
   Total: number;
-  Notified: boolean;
   Records: NetworkRecord[];
 };
 
@@ -68,8 +67,6 @@ type HostList = Record<
     Download: number;
   }
 >;
-
-export type SocketNetworkRecord = Record<string, SocketNetworkData>;
 
 export type SocketNetworkData = {
   Name: string;

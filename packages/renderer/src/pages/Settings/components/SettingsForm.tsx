@@ -32,17 +32,18 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({error}) => {
       onSubmit={handleSubmit}
       style={{marginTop: theme.spacing(6), userSelect: 'none'}}
     >
+      NOT YET IMPLEMENTED
       <Divider />
       {/* <Divider />
       <Plan
         settings={formData.plan}
         handleChange={handleChange}
       />{' '} */}
-      <Divider />
+      {/* <Divider />
       <Notifications
         settings={formData.notifications}
         handleChange={handleChange}
-      />{' '}
+      />{' '} */} 
       {/* <Divider />
       <Preferences
         settings={formData.preferences}
