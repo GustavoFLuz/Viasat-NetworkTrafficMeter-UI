@@ -8,6 +8,8 @@ export type NetworkUsageContext = {
   selection: {
     filter: (pid: string) => void;
     filtered: string[];
+    clear: ()=>void;
+    all: ()=>void;
   };
   interval: {
     set: (id: number) => void;

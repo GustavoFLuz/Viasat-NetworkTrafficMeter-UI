@@ -1,5 +1,6 @@
 import {
   Box,
+  Checkbox,
   Table,
   TableBody,
   TableCell,
@@ -17,6 +18,7 @@ import {AppListItem} from './AppListItem';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import {NetworkUsageData} from '@/shared/types/NetworkUsage';
+import { useNetworkData } from '@/shared/contexts';
 const DrawerWidth = '25%';
 
 const Drawer = styled(Box, {shouldForwardProp: prop => prop !== 'open'})<{
@@ -42,6 +44,7 @@ export const AppList: React.FC<AppListProps> = ({children, drawerOpen, data}) =>
   const [sortedData, setSortedData] = useState<NetworkUsageData[]>(Object.values(data));
   const [sorting, setSorting] = useState<SortingOptions>('Total');
   const [sortingDirection, setSortingDirection] = useState<1 | -1>(-1);
+  const { selection: { filtered, clear: filterClear, all: filterAll }, } = useNetworkData();
 
   const changeSorting = (column: SortingOptions) => {
     sorting == column
@@ -97,6 +100,20 @@ export const AppList: React.FC<AppListProps> = ({children, drawerOpen, data}) =>
           >
             <TableHead sx={{height: '2em'}}>
               <TableRow>
+                <TableCell
+                  onClick={() => filtered.length?filterClear():filterAll()}
+                  align="left"
+                  sx={{
+                    minWidth: '15px',
+                    padding: 0,
+                    margin: 0,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    verticalAlign: 'middle',
+                  }}
+                >
+                  <Checkbox color="secondary" checked={!filtered.length} />
+                </TableCell>
                 <TableCell
                   onClick={() => changeSorting('Name')}
                   align="left"

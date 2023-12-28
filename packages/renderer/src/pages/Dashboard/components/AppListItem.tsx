@@ -1,17 +1,14 @@
 import { useNetworkData } from '@/shared/contexts';
 import { NetworkUsageData } from '@/shared/types/NetworkUsage';
 import { NumberToByte } from '@/utils/ByteUtils';
-import { TableCell, TableRow, Tooltip } from '@mui/material';
+import { Checkbox, TableCell, TableRow, Tooltip } from '@mui/material';
 
 interface AppListItemProps {
   data: NetworkUsageData;
 }
 
 export const AppListItem: React.FC<AppListItemProps> = ({ data }) => {
-  const {
-    selection: { filter, filtered },
-  } = useNetworkData();
-
+  const { selection: { filter, filtered }, } = useNetworkData();
   return (
     <TableRow
       key={data.Name}
@@ -20,7 +17,6 @@ export const AppListItem: React.FC<AppListItemProps> = ({ data }) => {
         '&>td': {
           boxSizing: 'border-box',
           fontSize: 12,
-          px: 1,
           borderColor: 'neutral.black',
           color: 'text.primary',
           opacity: !filtered.includes(data.Name) ? 1 : .4,
@@ -38,12 +34,15 @@ export const AppListItem: React.FC<AppListItemProps> = ({ data }) => {
       }}
       onClick={() => filter(data.Name)}
     >
-      <TableCell sx={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+      <TableCell align="right" size='small' sx={{ p: 0, m: 0, width: "15px" }}>
+        <Checkbox checked={!filtered.includes(data.Name)} color='secondary' />
+      </TableCell>
+      <TableCell sx={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', px: 1 }}>
         {data.Name}
       </TableCell>
-      <TableCell align="right">{NumberToByte(data.Download)}</TableCell>
-      <TableCell align="right">{NumberToByte(data.Upload)}</TableCell>
-      <TableCell align="right">{NumberToByte(data.Total)}</TableCell>
+      <TableCell align="right" sx={{ px: 1 }}>{NumberToByte(data.Download)}</TableCell>
+      <TableCell align="right" sx={{ px: 1 }}>{NumberToByte(data.Upload)}</TableCell>
+      <TableCell align="right" sx={{ px: 1 }}>{NumberToByte(data.Total)}</TableCell>
     </TableRow>
   );
 };

@@ -45,6 +45,7 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({ children
   // Handle request of "old data" when timeSpan is changed
   useEffect(() => {
     setQueryLoading(true)
+    setIgnoredProcesses([])
     const timeSpan = TimeSpans[timeSpanMode];
     setSync(timeSpan.synced)
     window.backend
@@ -114,6 +115,8 @@ export const NetworkUsageProvider: React.FC<NetworkUsageDataProps> = ({ children
         selection: {
           filter: ignoreProcess,
           filtered: ignoredProcesses,
+          clear: ()=>setIgnoredProcesses([]),
+          all: ()=>setIgnoredProcesses(Object.keys(networkUsage))
         },
         interval: {
           set: setTimeSpanMode,
