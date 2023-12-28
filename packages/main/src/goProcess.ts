@@ -65,10 +65,29 @@ async function stopProcess() {
   if (req.status !== 200)
     return console.log(`An error happened while stopping the backend process`)
 }
-
+let abortController: AbortController | null = null;
 async function getDataFromTimeInterval(begin: number, end: number) {
-  const data = await axios.get(
-    `http://127.0.0.1:50000/active-processes?initialDate=${begin}&endDate=${end}`,
-  );
-  return data.data;
+  if (abortController) {
+    console.log("CANCELed");
+    abortController.abort()
+    abortController = null;
+  }
+  abortController = new AbortController();
+
+  try {
+    const response = await axios.get(
+      `http://127.0.0.1:50000/active-processes?initialDate=${begin}&endDate=${end}`,
+      {
+        signal: abortController.signal
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isCancel(error)) {
+      console.log('Request canceled:', error.message);
+    } else {
+      console.error('Error retrieving data:', error);
+    }
+    return null;
+  }
 }
