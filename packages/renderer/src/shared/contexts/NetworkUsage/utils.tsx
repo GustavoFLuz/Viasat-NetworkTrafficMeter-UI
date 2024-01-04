@@ -26,6 +26,25 @@ export function getCurrentUnixTimeWithOffset(offset: number = 0) {
     return GetTimeRounded() + offset;
 }
 
+export function joinRecords<T extends Types.HostList | Types.ProtocolList | Types.ProcessList>(oldData: T, newData: T, type: "Hosts" | "Protocols" | "Processes") {
+    const key = {
+        Hosts: "Host_Name",
+        Protocols: "Protocol_Name",
+        Processes: "Pid",
+    }[type]
+
+    if (key === undefined) return oldData
+    Object.values(newData).forEach(host =>
+        oldData[host[key]] === undefined ?
+            oldData[host[key]] = host :
+            (() => {
+                oldData[host[key]].Download += host.Download;
+                oldData[host[key]].Upload += host.Upload;
+            })()
+    )
+    return oldData
+}
+
 /** 
  * Returns the index of the closest time within an array
  * @param timeArray Array of numbers to get the index from
@@ -97,6 +116,9 @@ export function joinPreviousCurrentData(oldData: Types.NetworkUsageRecord, newDa
                         Download: value.Records.reduce((sum, curr) => sum + curr.Download, 0),
                         Upload: value.Records.reduce((sum, curr) => sum + curr.Upload, 0),
                         Total: value.Records.reduce((sum, curr) => sum + curr.Total, 0),
+                        Hosts: value.Records.reduce((sum, curr) => joinRecords(sum, curr.Hosts, "Hosts"), {}),
+                        Protocols: value.Records.reduce((sum, curr) => joinRecords(sum, curr.Protocols, "Protocols"), {}),
+                        Processes: value.Records.reduce((sum, curr) => joinRecords(sum, curr.Processes, "Processes"), {}),
                     }]
             )
             .filter(([_, value]) => value.Total > 0),
@@ -114,6 +136,9 @@ export function formatData(data: Types.SocketNetworkData): Types.NetworkUsageDat
         Download: data.Download,
         Total: data.Upload + data.Download,
         Records: [...emptyRecordArray(data.Name, TimeSpanFromNow(30)), formatNewRecord(data)].slice(-RECORD_ARRAY_LENGTH),
+        Hosts: data.Hosts,
+        Protocols: data.Protocols,
+        Processes: data.Processes,
     };
 }
 
@@ -140,7 +165,11 @@ export function addNewData(oldData: Types.NetworkUsageData, newData: Types.Socke
     closestRecord.Download += newData.Download;
     closestRecord.Upload += newData.Upload;
     closestRecord.Total += newData.Download + newData.Upload;
-    // WIP add objects protocol, hosts, processes
+
+    closestRecord.Hosts = joinRecords(closestRecord.Hosts, newData.Hosts, "Hosts")
+    closestRecord.Protocols = joinRecords(closestRecord.Protocols, newData.Protocols, "Protocols")
+    closestRecord.Processes = joinRecords(closestRecord.Processes, newData.Processes, "Processes")
+
     return oldData
 }
 
@@ -161,29 +190,36 @@ export function calculateNewTotal(
         Download: 0,
         Upload: 0,
         Records: emptyRecordArray('Total', timeSpan),
+        Hosts: {},
+        Protocols: {},
+        Processes: {}
     };
     newTotal.Records = newTotal.Records.map((record: Types.NetworkRecord, index: number) => {
         return {
             ...record,
-            ...Object.keys(currentData).reduce(
-                (totalSum, process: string) => {
-                    if (filterList.includes(process)) return totalSum
+            ...Object.values(currentData).reduce(
+                (totalSum, process: Types.NetworkUsageData) => {
+                    if (filterList.includes(process.Name)) return totalSum
                     return {
-                        Upload: totalSum.Upload + currentData[process].Records[index].Upload,
-                        Download: totalSum.Download + currentData[process].Records[index].Download,
-                        Total: totalSum.Total + currentData[process].Records[index].Total,
+                        Upload: totalSum.Upload + process.Records[index].Upload,
+                        Download: totalSum.Download + process.Records[index].Download,
+                        Total: totalSum.Total + process.Records[index].Total,
+                        Hosts: joinRecords(totalSum.Hosts, process.Records[index].Hosts, "Hosts"),
+                        Protocols: joinRecords(totalSum.Protocols, process.Records[index].Protocols, "Protocols"),
+                        Processes: joinRecords(totalSum.Processes, process.Records[index].Processes, "Processes"),
                     };
                 },
-                { Upload: 0, Download: 0, Total: 0 },
+                { Upload: 0, Download: 0, Total: 0, Hosts: {}, Protocols: {}, Processes: {} },
             ),
         };
     });
-    newTotal.Download = newTotal.Records.reduce(
-        (sum: number, curr: Types.NetworkRecord) => sum + curr.Download, 0,);
-    newTotal.Upload = newTotal.Records.reduce(
-        (sum: number, curr: Types.NetworkRecord) => sum + curr.Upload, 0,);
-    newTotal.Total = newTotal.Records.reduce(
-        (sum: number, curr: Types.NetworkRecord) => sum + curr.Total, 0,);
+    newTotal.Download = newTotal.Records.reduce((sum, curr) => sum + curr.Download, 0);
+    newTotal.Upload = newTotal.Records.reduce((sum, curr) => sum + curr.Upload, 0);
+    newTotal.Total = newTotal.Records.reduce((sum, curr) => sum + curr.Total, 0);
+    newTotal.Hosts = newTotal.Records.reduce((sum, curr) => joinRecords(sum, curr.Hosts, "Hosts"), {});
+    newTotal.Protocols = newTotal.Records.reduce((sum, curr) => joinRecords(sum, curr.Protocols, "Protocols"), {});
+    newTotal.Processes = newTotal.Records.reduce((sum, curr) => joinRecords(sum, curr.Processes, "Processes"), {});
+
     return newTotal;
 }
 
@@ -214,15 +250,14 @@ export function insertRecord(total: Types.NetworkRecord[], current: Types.Socket
         current.Update_Time!,
     );
     const newRecord = {
-        Download: total[closestTimeIndex].Download + current.Download,
-        Hosts: total[closestTimeIndex].Hosts,
         Name: total[closestTimeIndex].Name,
-        Processes: total[closestTimeIndex].Processes,
-        Protocols: total[closestTimeIndex].Protocols,
-        Time: total[closestTimeIndex].Time,
-
+        Download: total[closestTimeIndex].Download + current.Download,
         Upload: total[closestTimeIndex].Upload + current.Upload,
         Total: total[closestTimeIndex].Total + current.Download + current.Upload,
+        Hosts: joinRecords(total[closestTimeIndex].Hosts, current.Hosts, "Hosts"),
+        Processes: joinRecords(total[closestTimeIndex].Processes, current.Processes, "Processes"),
+        Protocols: joinRecords(total[closestTimeIndex].Protocols, current.Protocols, "Protocols"),
+        Time: total[closestTimeIndex].Time,
     };
     total[closestTimeIndex] = newRecord;
     return total;
@@ -238,12 +273,15 @@ export function formatFromQuery(queryResults: Types.SocketNetworkData[], start: 
     const record: Types.NetworkUsageRecord = {}
     queryResults.forEach(res => {
         if (record[res.Name] === undefined)
-            return record[res.Name] = {
+            record[res.Name] = {
                 Name: res.Name,
-                Upload: res.Upload,
-                Download: res.Download,
-                Total: res.Upload + res.Download,
+                Upload: 0,
+                Download: 0,
+                Total: 0,
                 Records: emptyRecordArray(res.Name, [start, end]),
+                Hosts: {},
+                Protocols: {},
+                Processes: {},
             }
         record[res.Name] = {
             Name: res.Name,
@@ -251,7 +289,11 @@ export function formatFromQuery(queryResults: Types.SocketNetworkData[], start: 
             Download: res.Download + record[res.Name].Download,
             Total: res.Upload + res.Download + record[res.Name].Total,
             Records: insertRecord(record[res.Name].Records, res),
+            Hosts: joinRecords(record[res.Name].Hosts, res.Hosts, "Hosts"),
+            Protocols: joinRecords(record[res.Name].Protocols, res.Protocols, "Protocols"),
+            Processes: joinRecords(record[res.Name].Processes, res.Processes, "Processes"),
         }
     })
+
     return record
 }

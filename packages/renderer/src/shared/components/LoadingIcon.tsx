@@ -12,7 +12,7 @@ export const LoadingIcon: React.FC<LoadingIconProps> = ({size}) => {
         width: size,
         height: size,
         position: 'absolute',
-        top: '50%',
+        top: '45%',
         left: '50%',
         translate: '-50% -50%',
       }}

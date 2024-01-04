@@ -3,7 +3,7 @@ import { getCummulativeUsageOfProcess, useNetworkData } from '@/shared/contexts'
 import { Box, Paper, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
-import { AppList, AreaChart, PieChart, TopBar } from './components';
+import { AppList, AreaChart, PieChart, TopBar, UsageList } from './components';
 import { LoadingIcon } from '@/shared/components';
 
 export const Dashboard = () => {
@@ -12,7 +12,6 @@ export const Dashboard = () => {
     data: { processes, filteredTotal, synced, add }, interval: { loading }
   } = useNetworkData();
   const theme = useTheme();
-
   useEffect(() => {
     const stopConnection = !synced || loading;
     const timeout: NodeJS.Timeout[] = []
@@ -51,79 +50,79 @@ export const Dashboard = () => {
         drawerOpen={drawerOpen}
         data={processes}
       >
-        <Box
-          sx={{
-            boxSizing: 'border-box',
-            display: 'flex',
-            gap: 2,
-            height: '100%',
-            maxHeight: `calc(100vh - 3.6rem - ${TitleBarHeight})`,
-            width: '100%',
-            flexGrow: 1,
-            py: 2,
-            px: 3,
-          }}
-        >
-          <Box sx={{ width: '30%' }}>
-            <Paper sx={{ width: '100%', height: '100%', p: 3, boxSizing: 'border-box', position: "relative" }}>
-              <Typography
-                variant="h6"
-                textAlign="center"
-              >
-                Network usage
-              </Typography>
-              <PieChart data={filteredTotal} />
-              {loading && <LoadingIcon size='50px' />}
-            </Paper>
-          </Box>
-          <Box
-            sx={{
-              flexGrow: 1,
-              maxHeight: '100%',
-              maxWidth: `calc(70% - ${theme.spacing(2)})`,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
-            }}
-          >
-            <Paper
+        {!loading ?
+          <>
+
+            <Box
               sx={{
-                width: '100%',
-                height: `calc(50% - ${theme.spacing(1)})`,
-                p: 3,
                 boxSizing: 'border-box',
-                position: "relative"
+                display: 'flex',
+                gap: 2,
+                height: '100%',
+                maxHeight: `calc(100vh - 3.6rem - ${TitleBarHeight})`,
+                width: '100%',
+                flexGrow: 1,
+                py: 2,
+                px: 3,
               }}
             >
-              <Typography
-                variant="h6"
-                textAlign="center"
+              <Box sx={{ width: 'min(30vw, 450px)' }}>
+                <Paper sx={{ width: '100%', height: '100%', p: 1, boxSizing: 'border-box', position: "relative", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+                  <Typography
+                    variant="h6"
+                    textAlign="center"
+                  >
+                    Network usage
+                  </Typography>
+                  <Box sx={{width: '100%', height: '30%'}}><PieChart data={filteredTotal} /></Box>
+                  <Box sx={{width: '100%', height: `calc(50% - ${theme.spacing(2)})`, overflowY:"auto"}}><UsageList data={filteredTotal}/></Box>
+                </Paper>
+              </Box>
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  maxHeight: '100%',
+                  maxWidth: `calc(100% - min(30vw, 450px) - ${theme.spacing(2)})`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                }}
               >
-                Network usage
-              </Typography>
-              <AreaChart data={filteredTotal} />
-              {loading && <LoadingIcon size='50px' />}
-            </Paper>
-            <Paper
-              sx={{
-                width: '100%',
-                height: `calc(50% - ${theme.spacing(1)})`,
-                p: 3,
-                boxSizing: 'border-box',
-                position: "relative"
-              }}
-            >
-              <Typography
-                variant="h6"
-                textAlign="center"
-              >
-                Cumulative network usage
-              </Typography>
-              <AreaChart data={getCummulativeUsageOfProcess(filteredTotal)} />
-              {loading && <LoadingIcon size='50px' />}
-            </Paper>
-          </Box>
-        </Box>
+                <Paper
+                  sx={{
+                    height: `calc(50% - ${theme.spacing(1)})`,
+                    p: 3,
+                    boxSizing: 'border-box',
+                    position: "relative"
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    textAlign="center"
+                  >
+                    Network usage
+                  </Typography>
+                  <AreaChart data={filteredTotal} />
+                </Paper>
+                <Paper
+                  sx={{
+                    height: `calc(50% - ${theme.spacing(1)})`,
+                    p: 3,
+                    boxSizing: 'border-box',
+                    position: "relative"
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    textAlign="center"
+                  >
+                    Cumulative network usage
+                  </Typography>
+                  <AreaChart data={getCummulativeUsageOfProcess(filteredTotal)} />
+                </Paper>
+              </Box>
+            </Box>
+          </>: <LoadingIcon size='75px' />}
       </AppList>
     </Box>
   );

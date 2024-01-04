@@ -68,7 +68,6 @@ async function stopProcess() {
 let abortController: AbortController | null = null;
 async function getDataFromTimeInterval(begin: number, end: number) {
   if (abortController) {
-    console.log("CANCELed");
     abortController.abort()
     abortController = null;
   }

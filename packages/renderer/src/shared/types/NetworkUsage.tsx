@@ -29,6 +29,9 @@ export type NetworkUsageData = {
   Upload: number;
   Total: number;
   Records: NetworkRecord[];
+  Hosts: HostList;
+  Protocols: ProtocolList;
+  Processes: ProcessList;
 };
 
 export type NetworkRecord = {
@@ -42,18 +45,18 @@ export type NetworkRecord = {
   Time: number;
 };
 
-type ProcessList = Record<
+export type ProcessList = Record<
   string,
   {
     Pid: number;
-    Create_Time: number;
-    Update_Time: number;
+    Create_Time?: number;
+    Update_Time?: number;
     Upload: number;
     Download: number;
   }
 >;
 
-type ProtocolList = Record<
+export type ProtocolList = Record<
   string,
   {
     Protocol_Name: string;
@@ -61,7 +64,7 @@ type ProtocolList = Record<
     Download: number;
   }
 >;
-type HostList = Record<
+export type HostList = Record<
   string,
   {
     Host_Name: string;
