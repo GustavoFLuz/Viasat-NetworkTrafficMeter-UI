@@ -32,17 +32,18 @@ export function joinRecords<T extends Types.HostList | Types.ProtocolList | Type
         Protocols: "Protocol_Name",
         Processes: "Pid",
     }[type]
-
-    if (key === undefined) return oldData
+    
+    const oldDataCopy = structuredClone(oldData);
+    if (key === undefined) return oldDataCopy
     Object.values(newData).forEach(host =>
-        oldData[host[key]] === undefined ?
-            oldData[host[key]] = host :
+        oldDataCopy[host[key]] === undefined ?
+            oldDataCopy[host[key]] = host :
             (() => {
-                oldData[host[key]].Download += host.Download;
-                oldData[host[key]].Upload += host.Upload;
+                oldDataCopy[host[key]].Download += host.Download;
+                oldDataCopy[host[key]].Upload += host.Upload;
             })()
     )
-    return oldData
+    return oldDataCopy
 }
 
 /** 
