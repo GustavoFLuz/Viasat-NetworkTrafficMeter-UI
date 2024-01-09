@@ -2,6 +2,7 @@ import {app, BrowserWindow, ipcMain} from 'electron';
 import {join, resolve} from 'node:path';
 import {addBackendEvents, startProcess} from './goProcess';
 import {addSettingsEvents} from './settings';
+import url from "url"
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -55,7 +56,11 @@ async function createWindow() {
      * @see https://github.com/nodejs/node/issues/12682
      * @see https://github.com/electron/electron/issues/6869
      */
-    await browserWindow.loadFile(resolve(__dirname, '../../renderer/dist/index.html'));
+    await browserWindow.loadURL(url.format({
+      pathname: resolve(__dirname, '../../renderer/dist/index.html'),
+      protocol: 'file:',
+      slashes: true
+    }));
   }
   
   return browserWindow;
