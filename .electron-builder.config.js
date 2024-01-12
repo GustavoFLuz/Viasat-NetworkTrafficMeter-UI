@@ -33,6 +33,7 @@ module.exports = async function () {
     nsis: {
       oneClick: false,
       allowToChangeInstallationDirectory: true,
+      include: "buildResources/installer.nsh",
     }
   };
 };
