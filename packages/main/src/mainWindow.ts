@@ -3,6 +3,7 @@ import {join, resolve} from 'node:path';
 import {addBackendEvents, startProcess} from './goProcess';
 import {addSettingsEvents} from './settings';
 import url from "url"
+import path from "path"
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -57,7 +58,7 @@ async function createWindow() {
      * @see https://github.com/electron/electron/issues/6869
      */
     await browserWindow.loadURL(url.format({
-      pathname: resolve(__dirname, '../../renderer/dist/index.html'),
+      pathname: path.join(__dirname, '../../renderer/dist/index.html'),
       protocol: 'file:',
       slashes: true
     }));
