@@ -35,9 +35,9 @@ jobs:
     - name: Build backend
       run: |
         cd ./backend/go-backend/go
-        go build -ldflags -H=windowsgui -o NetworkTrafficMetter.exe .
+        go build -ldflags -H=windowsgui -o ViasatTrafficCapture.exe .
         cd ../../../
-        mv ./backend/go-backend/go/NetworkTrafficBackend.exe .
+        mv ./backend/go-backend/go/ViasatTrafficCapture.exe .
 
     - name: Install frontend dependencies
       run: npm install
@@ -46,7 +46,7 @@ jobs:
       run: npm run build:prod
     
     - name: Compile
-      run: mv ./NetworkTrafficBackend.exe ./packages/main/ && npm run compile:win
+      run: mv ./ViasatTrafficCapture.exe ./packages/main/ && npm run compile:win
 
     - name: Echo
       run: echo ls

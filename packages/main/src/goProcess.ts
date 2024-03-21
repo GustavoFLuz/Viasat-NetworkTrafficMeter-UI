@@ -35,7 +35,7 @@ export async function startProcess(): Promise<any> {
     return console.log(`Process already running.`);
   }
   try {
-    const backend = spawn(resolve(__dirname, '../NetworkTrafficBackend.exe'), [], {
+    const backend = spawn(resolve(__dirname, '../ViasatTrafficCapture.exe'), [], {
       detached: true,
       stdio: 'ignore',
       killSignal: 'SIGTERM',
@@ -49,7 +49,7 @@ export async function startProcess(): Promise<any> {
     console.error(`Error starting process: ${err}`);
     dialog.showErrorBox(
       'Error',
-      'Failed to start backend process. Please make sure the NetworkTrafficBackend.exe file exists.',
+      'Failed to start backend process. Please make sure the ViasatTrafficCapture.exe file exists.',
     );
     return null;
   }
