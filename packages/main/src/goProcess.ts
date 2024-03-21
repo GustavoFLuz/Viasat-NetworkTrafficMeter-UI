@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import { resolve } from 'node:path';
 import { dialog, ipcMain } from 'electron';
+import AutoLaunch from 'auto-launch';
 import axios from 'axios';
 
 export function addBackendEvents(window: Electron.BrowserWindow) {
@@ -14,6 +15,10 @@ export function addBackendEvents(window: Electron.BrowserWindow) {
   ipcMain.handle('get-data-from-time-interval', async (_, { start, end }) => {
     const data = await getDataFromTimeInterval(start, end);
     return data;
+  });
+
+  ipcMain.on('request-startup-initialization', () => {
+    ToggleStartup();
   });
 }
 
@@ -89,4 +94,21 @@ async function getDataFromTimeInterval(begin: number, end: number) {
     }
     return null;
   }
+}
+
+const autoLaunch = new AutoLaunch({
+	name: 'ViasatTrafficCapture',
+	path: resolve(__dirname, '../ViasatTrafficCapture.exe'),
+})
+
+async function ToggleStartup() {
+  autoLaunch.isEnabled()
+  .then(function(isEnabled){
+    isEnabled? 
+      autoLaunch.disable():
+      autoLaunch.enable();
+  })
+  .catch(function(err){
+      console.error(err)
+  });
 }
