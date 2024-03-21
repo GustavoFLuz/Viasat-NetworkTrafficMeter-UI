@@ -96,6 +96,6 @@ export function ipcMainEvents(window: Electron.BrowserWindow) {
   ipcMain.on('window-minimize', () => {
     window.minimize();
   });
-  addBackendEvents(window);
-  addSettingsEvents();
+  const store = addSettingsEvents();
+  addBackendEvents(window, store);
 }

@@ -13,8 +13,9 @@ contextBridge.exposeInMainWorld('electron_window', {
 });
 
 contextBridge.exposeInMainWorld('settings', {
-  get: () => ipcRenderer.invoke('get-settings'),
-  update: (output: any) => ipcRenderer.invoke('update-settings', output),
+  get: (key?: string) => ipcRenderer.invoke('get-settings', {key}),
+  update: (key: string, value: any) => ipcRenderer.invoke('update-settings', {key, value}),
+  reset: () => ipcRenderer.invoke('reset-settings'),
 });
 
 contextBridge.exposeInMainWorld('backend', {
@@ -22,4 +23,5 @@ contextBridge.exposeInMainWorld('backend', {
   stop: () => ipcRenderer.send('stop-backend'),
   get_data: async (start: number, end: number) =>
     await ipcRenderer.invoke('get-data-from-time-interval', {start, end}),
+  request_startup: () => ipcRenderer.send('request-startup-initialization'),
 });

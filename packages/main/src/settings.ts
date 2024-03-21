@@ -1,31 +1,37 @@
-import {app, ipcMain} from 'electron';
-import * as fs from 'fs';
+import { app, ipcMain } from 'electron';
+import Store from 'electron-store';
 
 export function addSettingsEvents() {
-  ipcMain.handle('get-settings', () => {
-    return ReadSettings();
+  const store = new Store({
+    cwd: app.getPath('appData'),
+    name: "settings",
+    schema: {
+      startOnWindowsStartup: {
+        type: "boolean",
+        default: false,
+      },
+    }
   });
 
-  ipcMain.handle('update-settings', (_, output) => {
-    return WriteSettings(output);
+  ipcMain.handle('get-settings', async (_, {key}) => {
+    return await ReadSettings(store, key);
   });
+
+  ipcMain.handle('update-settings', async (_, output: {key: string, value: any}) => {
+    return await WriteSettings(store, output.key, output.value);
+  });
+
+  ipcMain.handle('reset-settings', async () => {
+    return await store.clear();
+  });
+
+  return store;
 }
 
-function ReadSettings() {
-  try {
-    const settings = fs.readFileSync(
-      app.getPath('appData') + '/networktrafficmeter/settings.json',
-      'utf8',
-    );
-    return JSON.parse(settings);
-  } catch (err) {
-    return null;
-  }
+function ReadSettings(store: Store<any>, key?: string) {
+  return key?store.get(key):store.store;
 }
 
-function WriteSettings(output: any) {
-  return fs.writeFileSync(
-    app.getPath('appData') + '/networktrafficmeter/settings.json',
-    JSON.stringify(output),
-  );
+function WriteSettings(store: Store<any>, key: string, output: any) {
+  return store.set(key, output)
 }

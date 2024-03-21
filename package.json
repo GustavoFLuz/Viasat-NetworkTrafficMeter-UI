@@ -55,6 +55,7 @@
   "dependencies": {
     "auto-launch": "^5.0.6",
     "axios": "^1.5.1",
+    "electron-store": "^8.2.0",
     "electron-updater": "6.1.4",
     "find-process": "^1.4.7",
     "happy-dom": "12.1.6",

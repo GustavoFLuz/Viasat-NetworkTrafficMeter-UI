@@ -4,9 +4,7 @@ import {CssBaseline, ThemeProvider} from '@mui/material';
 import {LightTheme} from '@/assets/themes';
 import {LocalizationProvider} from '@mui/x-date-pickers';
 import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
-import {SettingsProvider} from './shared/contexts/Settings';
 import {NotificationProvider} from './shared/contexts';
-import {SettingsType} from '@/shared/types/Settings';
 import {SocketNetworkData} from '@/shared/types/NetworkUsage';
 
 declare global {
@@ -17,8 +15,9 @@ declare global {
       minimize: () => void;
     };
     settings: {
-      get: () => Promise<any>;
-      update: (settings: SettingsType) => Promise<any>;
+      get: (key?: string) => Promise<any>;
+      update: (key: string, value: any) => Promise<any>;
+      reset: () => Promise<any>;
     };
     backend: {
       start: () => void;
@@ -30,14 +29,12 @@ declare global {
 const App = () => {
   return (
     <LocalizationProvider dateAdapter={AdapterMoment}>
-      <SettingsProvider>
-        <ThemeProvider theme={LightTheme}>
-          <NotificationProvider>
-            <CssBaseline />
-            <RouterProvider router={router} />
-          </NotificationProvider>
-        </ThemeProvider>
-      </SettingsProvider>
+      <ThemeProvider theme={LightTheme}>
+        <NotificationProvider>
+          <CssBaseline />
+          <RouterProvider router={router} />
+        </NotificationProvider>
+      </ThemeProvider>
     </LocalizationProvider>
   );
 };

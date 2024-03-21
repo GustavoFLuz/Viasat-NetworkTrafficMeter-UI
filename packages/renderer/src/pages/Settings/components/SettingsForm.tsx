@@ -1,39 +1,41 @@
-import {useSettings} from '@/shared/contexts/Settings';
-import {SettingsType} from '@/shared/types/Settings';
-import {Box, Button, Divider, useTheme} from '@mui/material';
-import React, {useEffect, useState} from 'react';
-import {Notifications, Plan, Preferences} from '.';
+import { useSettings } from '@/shared/hooks';
+import { Box, Button, Checkbox, Divider, FormControlLabel, Grid, styled, useTheme } from '@mui/material';
+import React, { useEffect } from 'react';
+import { SettingsType } from '@/shared/types/Settings';
+
+const FormGrid = styled(Grid)(() => ({
+  display: 'flex',
+  flexDirection: 'column',
+}));
 
 type SettingsFormProps = {
-  error: (str: string) => void;
+  defaultSettings: SettingsType;
+  update: (key: string, value: any) => void;
+  reset: () => void;
 };
 
-export const SettingsForm: React.FC<SettingsFormProps> = ({error}) => {
+export const SettingsForm: React.FC<SettingsFormProps> = ({ defaultSettings, update, reset }) => {
   const theme = useTheme();
-  const {settings: currentSettings, updateSettings} = useSettings();
-  const [formData, setFormData] = useState<SettingsType>(currentSettings);
 
-  useEffect(() => {
-    setFormData(currentSettings);
-  }, [currentSettings]);
-
-  const handleChange = (newData: any) => {
-    setFormData({...formData, ...newData});
-  };
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    updateSettings(formData);
-    window.history.back();
+  const handleChange = (key: string, value: any) => {
+    update(key, value)
   };
 
   return (
     <form
-      onSubmit={handleSubmit}
-      style={{marginTop: theme.spacing(6), userSelect: 'none'}}
+      style={{ marginTop: theme.spacing(6), userSelect: 'none' }}
     >
-      NOT YET IMPLEMENTED
+      <FormGrid item xs={12}>
+        <FormControlLabel
+          control={<Checkbox
+            checked={defaultSettings.startOnWindowsStartup}
+            onChange={event => handleChange("startOnWindowsStartup", event.target.checked)} 
+          />}
+          label="Start data capture on Windows startup"
+        />
+      </FormGrid>
       <Divider />
+
       {/* <Divider />
       <Plan
         settings={formData.plan}
@@ -43,26 +45,19 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({error}) => {
       <Notifications
         settings={formData.notifications}
         handleChange={handleChange}
-      />{' '} */} 
+      />{' '} */}
       {/* <Divider />
       <Preferences
         settings={formData.preferences}
         handleChange={handleChange}
       />{' '} */}
-      <Box sx={{position: 'absolute', bottom: '24px', right: '24px'}}>
+      <Box sx={{ position: 'absolute', bottom: '24px', right: '24px' }}>
         <Button
           variant="contained"
-          sx={{px: 4, mx: 2}}
-          onClick={() => window.history.back()}
+          sx={{ px: 4, mx: 2 }}
+          onClick={reset}
         >
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          sx={{px: 4, mx: 2}}
-          type="submit"
-        >
-          Apply
+          Reset to default settings
         </Button>
       </Box>
     </form>

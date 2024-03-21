@@ -1,14 +1,11 @@
 import { ViasatPlanType } from "./Shared"
 
-export type SettingsContext = {
-    settings: SettingsType;
-    updateSettings: (newSettings: SettingsType) => void;
-}
 
 export type SettingsType = {
-    plan: ViasatPlanType | null; 
+    startOnWindowsStartup: boolean;
+    /* plan: ViasatPlanType | null; 
     notifications: NotificationsSettingsType;
-    preferences: PreferencesSettingsType;
+    preferences: PreferencesSettingsType; */
 }
 
 export type NotificationsSettingsType = {

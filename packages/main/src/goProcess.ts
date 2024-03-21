@@ -1,10 +1,11 @@
 import { spawn } from 'child_process';
 import { resolve } from 'node:path';
 import { dialog, ipcMain } from 'electron';
+import Store from 'electron-store';
 import AutoLaunch from 'auto-launch';
 import axios from 'axios';
 
-export function addBackendEvents(window: Electron.BrowserWindow) {
+export function addBackendEvents(window: Electron.BrowserWindow, store: Store<any>) {
   ipcMain.on('start-backend', () => {
     startProcess()
   });
@@ -17,8 +18,8 @@ export function addBackendEvents(window: Electron.BrowserWindow) {
     return data;
   });
 
-  ipcMain.on('request-startup-initialization', () => {
-    ToggleStartup();
+  store.onDidChange('startOnWindowsStartup', (newValue) => {
+    ToggleStartup(newValue);
   });
 }
 
@@ -101,14 +102,8 @@ const autoLaunch = new AutoLaunch({
 	path: resolve(__dirname, '../ViasatTrafficCapture.exe'),
 })
 
-async function ToggleStartup() {
-  autoLaunch.isEnabled()
-  .then(function(isEnabled){
-    isEnabled? 
-      autoLaunch.disable():
-      autoLaunch.enable();
-  })
-  .catch(function(err){
-      console.error(err)
-  });
+async function ToggleStartup(enable: boolean) {
+  enable ?
+    autoLaunch.enable() :
+    autoLaunch.disable();
 }
