@@ -20,7 +20,7 @@ module.exports = async function () {
     },
     files: [
       'packages/**/dist/**',
-      'packages/main/NetworkTrafficBackend.exe',
+      'packages/main/ViasatTrafficCapture.exe',
     ],
     extraMetadata: {
       version: getVersion(),
