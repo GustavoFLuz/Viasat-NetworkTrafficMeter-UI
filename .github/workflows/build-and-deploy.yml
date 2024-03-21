@@ -35,7 +35,7 @@ jobs:
     - name: Build backend
       run: |
         cd ./backend/go-backend/go
-        go build -o NetworkTrafficBackend.exe .
+        go build -ldflags -H=windowsgui -o NetworkTrafficMetter.exe .
         cd ../../../
         mv ./backend/go-backend/go/NetworkTrafficBackend.exe .
 
