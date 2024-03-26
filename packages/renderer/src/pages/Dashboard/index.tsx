@@ -43,10 +43,10 @@ export const Dashboard = () => {
       if (socket) socket.close();
       if (timeout.length) timeout.forEach(clearTimeout)
     };
-  }, [synced, loading]);
+  }, [synced, loading, backendRunning]);
 
   useEffect(()=>{
-    window.backend.isRunning().then(setBackendRunning)
+    window.settings.get("runBackend").then(setBackendRunning)
   }, [])
 
   if(!backendRunning) 
