@@ -14,6 +14,7 @@ module.exports = async function () {
   return {
     productName: "Viasat Network Traffic Metter",
     artifactName: "${productName}.${ext}",
+    icon: 'buildResources/icon.ico',
     directories: {
       output: 'dist',
       buildResources: 'buildResources',
