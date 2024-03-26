@@ -19,8 +19,9 @@ contextBridge.exposeInMainWorld('settings', {
 });
 
 contextBridge.exposeInMainWorld('backend', {
-  start: () => ipcRenderer.send('start-backend'),
-  stop: () => ipcRenderer.send('stop-backend'),
+  start: async () => await ipcRenderer.invoke('start-backend'),
+  stop: async () => await ipcRenderer.invoke('stop-backend'),
+  isRunning: async () => await ipcRenderer.invoke('is-running'),
   get_data: async (start: number, end: number) =>
     await ipcRenderer.invoke('get-data-from-time-interval', {start, end}),
   request_startup: () => ipcRenderer.send('request-startup-initialization'),

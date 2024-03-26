@@ -47,6 +47,10 @@ export const LightTheme = createTheme({
   },
   typography: {
     fontFamily: ['Poppins', 'Roboto','sans-serif'].join(","),
+    h1: {
+      fontSize: '2.5rem',
+      lineHeight: '3.5rem',
+    },
     h6: {
       fontSize: '1.25rem',
       lineHeight: '1.75rem',

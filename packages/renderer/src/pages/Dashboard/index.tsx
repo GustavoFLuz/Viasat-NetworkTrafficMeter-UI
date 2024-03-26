@@ -3,7 +3,7 @@ import { getCummulativeUsageOfProcess, useNetworkData } from '@/shared/contexts'
 import { Box, Paper, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
-import { AppList, AreaChart, PieChart, TopBar, UsageList } from './components';
+import { AppList, AreaChart, BackendNotRunning, PieChart, TopBar, UsageList } from './components';
 import { LoadingIcon } from '@/shared/components';
 
 export const Dashboard = () => {
@@ -11,9 +11,11 @@ export const Dashboard = () => {
   const {
     data: { processes, filteredTotal, synced, add }, interval: { loading }
   } = useNetworkData();
+  const [backendRunning, setBackendRunning] = useState<boolean>(false);
   const theme = useTheme();
+  
   useEffect(() => {
-    const stopConnection = !synced || loading;
+    const stopConnection = !synced || loading || !backendRunning;
     const timeout: NodeJS.Timeout[] = []
     let socket: WebSocket;
     const connectWebSocket = () => {
@@ -42,6 +44,13 @@ export const Dashboard = () => {
       if (timeout.length) timeout.forEach(clearTimeout)
     };
   }, [synced, loading]);
+
+  useEffect(()=>{
+    window.backend.isRunning().then(setBackendRunning)
+  }, [])
+
+  if(!backendRunning) 
+    return <BackendNotRunning/>
 
   return (
     <Box sx={{ height: '100%', width: '100%' }}>

@@ -20,8 +20,9 @@ declare global {
       reset: () => Promise<any>;
     };
     backend: {
-      start: () => void;
-      stop: () => void;
+      start: () => Promise<boolean>;
+      stop: () => Promise<boolean>;
+      isRunning: () => Promise<boolean>;
       get_data: (start: number, end: number) => Promise<SocketNetworkData[]>;
     };
   }

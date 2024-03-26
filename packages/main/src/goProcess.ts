@@ -6,21 +6,17 @@ import AutoLaunch from 'auto-launch';
 import axios from 'axios';
 
 export function addBackendEvents(window: Electron.BrowserWindow, store: Store<any>) {
-  ipcMain.on('start-backend', () => {
-    startProcess()
-  });
-  ipcMain.on('stop-backend', () => {
-    stopProcess();
-  });
-
-  ipcMain.handle('get-data-from-time-interval', async (_, { start, end }) => {
-    const data = await getDataFromTimeInterval(start, end);
-    return data;
-  });
+  ipcMain.handle('start-backend', async () => await startProcess());
+  ipcMain.handle('stop-backend', async () => await stopProcess());
+  ipcMain.handle('is-running', async () => await getProcess())
+  ipcMain.handle('get-data-from-time-interval', async (_, { start, end }) => await getDataFromTimeInterval(start, end));
 
   store.onDidChange('startOnWindowsStartup', (newValue) => {
     ToggleStartup(newValue);
   });
+
+  if(store.get("runBackend"))
+    startProcess();
 }
 
 async function getProcess(): Promise<boolean> {
@@ -34,11 +30,11 @@ async function getProcess(): Promise<boolean> {
   }
 }
 
-export async function startProcess(): Promise<any> {
+export async function startProcess(): Promise<boolean> {
   console.log('Process Start');
   const backendRunning = await getProcess();
   if (backendRunning) {
-    return console.log(`Process already running.`);
+    return true;
   }
   try {
     const backend = spawn(resolve(__dirname, '../ViasatTrafficCapture.exe'), [], {
@@ -50,26 +46,25 @@ export async function startProcess(): Promise<any> {
     backend.on('message', console.log);
 
     console.log(`Started process ${backend.pid}`);
-    return backend.pid;
+    return true;
   } catch (err) {
     console.error(`Error starting process: ${err}`);
     dialog.showErrorBox(
       'Error',
       'Failed to start backend process. Please make sure the ViasatTrafficCapture.exe file exists.',
     );
-    return null;
+    return false;
   }
 }
 
-async function stopProcess() {
+async function stopProcess(): Promise<boolean> {
   const backendRunning = await getProcess();
-  if (!backendRunning) return null;
+  if (!backendRunning) return false;
   const req = await axios.post(
     `http://127.0.0.1:50000/shutdown`,
   );
 
-  if (req.status !== 200)
-    return console.log(`An error happened while stopping the backend process`)
+  return req.status !== 200
 }
 let abortController: AbortController | null = null;
 async function getDataFromTimeInterval(begin: number, end: number) {
@@ -90,9 +85,14 @@ async function getDataFromTimeInterval(begin: number, end: number) {
   } catch (error) {
     if (axios.isCancel(error)) {
       console.log('Request canceled:', error.message);
-    } else {
-      console.error('Error retrieving data:', error);
+      return null;
+    } 
+    const isRunning = await getProcess()
+    if(!isRunning){
+      console.log('Backend is not running')
+      return null;
     }
+    console.error('Error retrieving data:', error);
     return null;
   }
 }

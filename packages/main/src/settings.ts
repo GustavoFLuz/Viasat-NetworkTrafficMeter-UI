@@ -10,6 +10,10 @@ export function addSettingsEvents() {
         type: "boolean",
         default: false,
       },
+      runBackend: {
+        type: "boolean",
+        default: true,
+      },
     }
   });
 
